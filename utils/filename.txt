@@ -1,0 +1,11 @@
+/ssitio
+/uusuario
+/ppass 1 de sitio
+/uusuario2
+/ppass 2 de sitio
+/ttoken
+
+/ssitio2
+/uusuario
+/ppassword
+/ttoken
