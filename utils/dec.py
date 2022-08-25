@@ -11,7 +11,8 @@ class characters:
         self.__p_user = "/*u"
         self.__p_password = "/*p"
         self.__p_token = "/*t"
-
+        if len(key) != 16:
+            raise Exception(ValueError("Incorrect AES key length. It must be 16"))
         self.__key = self.compr_inputs(key)
     
     def compr_inputs(self, inputs):
@@ -123,15 +124,6 @@ class characters:
                     
         return data_dict
 
-"""
-ch = characters()
-password = ch.random_password()
-lst = ["sitio", "usuario", str(password)]
-#ch.save_data(lst, "filename.txt")
-lst2 = ch.load_data("filename.txt")
-print(lst2)
-A = {"B": {1, 2}, "C": 2}
-"""
 
 key = b'Sixteen byte key'
 ch = characters(key)
