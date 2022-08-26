@@ -2,15 +2,15 @@ import string
 import random
 from typing import List
 
-from Crypto.Cipher import AES
+#from Crypto.Cipher import AES
 
 class characters:
     def __init__(self, key) -> None:
         self.__characters = "~@#_^*%.+:;=" + string.ascii_letters + string.digits
-        self.__p_sitio = "/*s"
-        self.__p_user = "/*u"
-        self.__p_password = "/*p"
-        self.__p_token = "/*t"
+        self.__p_sitio = "//s"
+        self.__p_user = "//u"
+        self.__p_password = "//p"
+        self.__p_token = "//t"
         if len(key) != 16:
             raise Exception(ValueError("Incorrect AES key length. It must be 16"))
         self.__key = self.compr_inputs(key)
@@ -73,11 +73,6 @@ class characters:
                 f.write(b"\n")
                 
     def load_data(self, filename: str) -> list[str]:
-        p_sitio = "/s"
-        p_user = "/u"
-        p_password = "/p"
-        p_token = "/t"
-
         sitio = ""
         user = ""
         password = ""
@@ -88,45 +83,39 @@ class characters:
             
             for line in f:
                 new_line = line.rstrip()
-                prefix = new_line[:2]
-                sufix = new_line[2:]
+                prefix = new_line[:3]
+                sufix = new_line[3:]
                 
-                if prefix == p_sitio:
+                if prefix == self.__p_sitio:
                     sitio = sufix
-                    
-                elif prefix == p_user:
-                    user = sufix
-                    
-                elif prefix == p_password:
-                    password = sufix
-                    
-                elif prefix == p_token:
-                    token = sufix
-                    
-                if sitio == "" or user == "" or password == "":
-                    continue
-                
-                if data_dict.get(sitio):
-                    int_dict = len(data_dict[sitio].keys())
-                    temp_dict = {int_dict + 1 : {"user": user, "password": password, "token": token}}
-                    data_dict[sitio].update(temp_dict)
-                    sitio = ""
                     user = ""
                     password = ""
                     token = ""
+                    continue
+                    
+                elif prefix == self.__p_user:
+                    user = sufix
+                    
+                elif prefix == self.__p_password:
+                    password = sufix
+                    
+                if prefix == self.__p_token:
+                    token = sufix
+                
+                if data_dict.get(sitio) and token == "":
+                    int_dict = len(data_dict[sitio].keys())
+                    temp_dict = {int_dict + 1 : {"user": user, "password": password}}
+                    data_dict[sitio].update(temp_dict)
+                
+                if data_dict.get(sitio) and token != "":
+                    int_dict = len(data_dict[sitio].keys())
+                    temp_dict = {int_dict : {"user": user, "password": password, "token": token}}
+                    data_dict[sitio].update(temp_dict)
                     
                 else:
                     data_dict[sitio] = {1 : {"user": user, "password": password, "token": token}}
-                    sitio = ""
-                    user = ""
-                    password = ""
-                    token = ""
                     
         return data_dict
-
-
-key = b'Sixteen byte key'
-ch = characters(key)
-texto = ch.cifrado("oliaru")
-print(texto)
-print(ch.decrifrado(texto))
+# Example
+#key = b'Sixteen byte key'
+#ch = characters(key)
