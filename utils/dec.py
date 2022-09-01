@@ -1,3 +1,4 @@
+from calendar import day_abbr
 import string
 import random
 from typing import List
@@ -30,70 +31,52 @@ class characters:
     
     def cipher(self, data):
         #data = self.compr_inputs(data)
-        data = self.__salt(data)
+        #data = self.__salt(data)
         return self.__cifr(data)
     
     def __cifr(self, data: dict) -> tuple:
         key = self.__saltkey.decode()
-        #password = data[sitio][user]["password"]
-        # Sitios
         # a_dict[new_key] = a_dict.pop(old_key) # change key name
         new_dict = copy.deepcopy(data)
         for old_key in new_dict.keys():
-            new_key = self.__AES_string(old_key)
+            new_key = key[0] + old_key[0] + key[1] + old_key[1:-1] + key[-2] + old_key[-1] + key[-1]
+            #new_key = self.__AES_string(new_key) # encrypt
             data[new_key] = data.pop(old_key)
+
             for number_user in new_dict[old_key].keys():
-                new_number_user = key[2] + str(number_user)
-                new_number_user = self.__AES_string(new_number_user)
+                new_number_user = key[2] + str(number_user) # Salt
+                new_number_user = self.__AES_string(new_number_user) # encrypt
                 data[new_key][new_number_user] = data[new_key].pop(number_user)
+
                 for us_pw_t in new_dict[old_key][number_user]:
-                    new_us_pw_t = key[0] + us_pw_t[0] + key[1] + us_pw_t[1:-1] + key[-2] + us_pw_t[-1] + key[-1]
-                    new_us_pw_t = self.__AES_string(new_us_pw_t)
-                    new_data_inf = data[new_key][new_number_user][us_pw_t]
+                    new_us_pw_t = key[0] + us_pw_t[0] + key[1] + us_pw_t[1:-1] + key[-2] + us_pw_t[-1] + key[-1] # Salt
+                    new_us_pw_t = self.__AES_string(new_us_pw_t) # encrypt
+                    old_data_info = data[new_key][new_number_user][us_pw_t]
+                    #print(old_data_info)
                     data[new_key][new_number_user][new_us_pw_t] = data[new_key][new_number_user].pop(us_pw_t)
+
                     if data[new_key][new_number_user][new_us_pw_t] != "":
-                        aux = key[0] + new_data_inf[0] + key[1] + new_data_inf[1:-1] + key[-2] + new_data_inf[-1] + key[-1]
-                        data[new_key][new_number_user][new_us_pw_t] = self.__AES_string(aux)
+                        aux = key[0] + old_data_info[0] + key[1] + old_data_info[1:-1] + key[-2] + old_data_info[-1] + key[-1] # Salt
+                        data[new_key][new_number_user][new_us_pw_t] = self.__AES_string(aux) # encrypt
         return data
 
     def __AES_string(self, string):
         encript_cipher = AES.new(self.__key, AES.MODE_EAX)
-        self.__nonce = encript_cipher.nonce
+        nonce = encript_cipher.nonce
         string = self.compr_inputs(string)
-        etxt, _ = encript_cipher.encrypt_and_digest(string)
-        return etxt
-    
-    def __salt(self, salt_dict: dict) -> dict:
-        #self.__saltkey
-        key = self.__saltkey.decode()
-        #password = data[sitio][user]["password"]
-        # Sitios
-        # a_dict[new_key] = a_dict.pop(old_key) # change key name
-        old_dict = copy.deepcopy(salt_dict)
-        for old_key in old_dict.keys():
-            new_key = key[0] + old_key[0] + key[1] + old_key[1:-1] + key[-2] + old_key[-1] + key[-1]
-            new_key = self.__AES_string(new_key)
-            salt_dict[new_key] = salt_dict.pop(old_key)
-            for number_user in old_dict[old_key].keys():
-                new_number_user = key[2] + str(number_user)
-                salt_dict[new_key][new_number_user] = salt_dict[new_key].pop(number_user)
-                for us_pw_t in old_dict[old_key][number_user]:
-                    new_us_pw_t = key[0] + us_pw_t[0] + key[1] + us_pw_t[1:-1] + key[-2] + us_pw_t[-1] + key[-1]
-                    new_data_inf = salt_dict[new_key][new_number_user][us_pw_t]
-                    salt_dict[new_key][new_number_user][new_us_pw_t] = salt_dict[new_key][new_number_user].pop(us_pw_t)
-                    if salt_dict[new_key][new_number_user][new_us_pw_t] != "":
-                        salt_dict[new_key][new_number_user][new_us_pw_t] = key[0] + new_data_inf[0] + key[1] + new_data_inf[1:-1] + key[-2] + new_data_inf[-1] + key[-1]
-        return salt_dict
-        
-        
+        etxt, tag = encript_cipher.encrypt_and_digest(string)
+        return etxt, tag, nonce
     
     def decrifrado(self, encript_text):
         return self.__decifr(encript_text)
     
     def __decifr(self, encript_text):
-        self.__decript_cipher = AES.new(self.__key, AES.MODE_EAX, nonce=self.__nonce)
+        ...
+        """
+        self.__decript_cipher = AES.new(self.__key, AES.MODE_EAX, nonce=self.__nonce) # fix nonce
         plaintext = self.__decript_cipher.decrypt(encript_text)
         return plaintext
+        """
 
     def comprobe(self, decript_text):
         return self.__compr(decript_text)
@@ -113,13 +96,9 @@ class characters:
             out += random.choice(self.__characters)
         return out
 
-    def save_data(self, lst: list[str], filename: str) -> None:
-        if len(lst) != 3:
-            raise Exception("list must be length of 3")
-        with open(filename, "ab") as f:
-            for l in lst:
-                f.write(l.encode())
-                f.write(b"\n")
+    def save_data(self, encripted_dict: dict, filename: str) -> None:
+        with open(filename, "wb") as f:
+            pass
                 
     def load_data(self, filename: str) -> list[str]:
         sitio = ""
@@ -129,7 +108,8 @@ class characters:
 
         data_dict = dict()
         with open(filename, "r", encoding = 'utf-8') as f:
-            
+            num_users = 0
+            sites = []
             for line in f:
                 new_line = line.rstrip()
                 prefix = new_line[:3]
@@ -137,6 +117,9 @@ class characters:
                 
                 if prefix == self.__p_sitio:
                     sitio = sufix
+                    if sitio not in sites:
+                        num_users = 0
+                    sites.append(sitio)
                     user = ""
                     password = ""
                     token = ""
@@ -144,29 +127,33 @@ class characters:
                     
                 elif prefix == self.__p_user:
                     user = sufix
+                    num_users += 1
+                    continue
                     
                 elif prefix == self.__p_password:
                     password = sufix
-                    
-                if prefix == self.__p_token:
+
+                elif prefix == self.__p_token:
                     token = sufix
-                
-                if data_dict.get(sitio) and token == "":
-                    int_dict = len(data_dict[sitio].keys())
-                    temp_dict = {int_dict + 1 : {"user": user, "password": password}}
-                    data_dict[sitio].update(temp_dict)
-                
-                if data_dict.get(sitio) and token != "":
-                    int_dict = len(data_dict[sitio].keys())
-                    temp_dict = {int_dict : {"user": user, "password": password, "token": token}}
-                    data_dict[sitio].update(temp_dict)
-                    
                 else:
-                    data_dict[sitio] = {1 : {"user": user, "password": password, "token": token}}
-                    
+                    continue
+
+                if data_dict.get(sitio) is None and token == "" and user != "" and password != "":
+                    data_dict[sitio] = {num_users : {"user": user, "password": password}}
+                
+                elif data_dict.get(sitio) and token == "" and user != "" and password != "":
+                    data_dict[sitio][num_users] = {"user": user, "password": password}
+
+                elif data_dict.get(sitio) and token != "" and user != "" and password != "":
+                    for number in data_dict[sitio]:
+                        if user is data_dict[sitio][number]["user"]:
+                            data_dict[sitio][number]["token"] = token
+                            break
         return data_dict
 
 key = b'Sixteen byte key'
 ch = characters(key)
 file_text = ch.load_data(r"file.txt")
 encoded_text = ch.cipher(file_text)
+print(encoded_text)
+#ch.save_data(encoded_text)
