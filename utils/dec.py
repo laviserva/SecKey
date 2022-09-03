@@ -71,6 +71,7 @@ class characters:
         # a_dict[new_key] = a_dict.pop(old_key) # change key name
         old_dict = copy.deepcopy(salt_dict)
         for old_key in old_dict.keys():
+            print(old_dict)
             new_key = key[0] + old_key[0] + key[1] + old_key[1:-1] + key[-2] + old_key[-1] + key[-1]
             new_key = self.__AES_string(new_key)
             salt_dict[new_key] = salt_dict.pop(old_key)
