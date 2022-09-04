@@ -91,7 +91,6 @@ class characters:
         user = ""
         password = ""
         token = ""
-
         data_dict = dict()
         with open(filename, "r", encoding = 'utf-8') as f:
             num_users = 0
@@ -100,7 +99,7 @@ class characters:
                 new_line = line.rstrip()
                 prefix = new_line[:3]
                 sufix = new_line[3:]
-                
+
                 if prefix == self.__p_sitio:
                     sitio = sufix
                     if sitio not in sites:
@@ -110,12 +109,12 @@ class characters:
                     password = ""
                     token = ""
                     continue
-                    
+
                 elif prefix == self.__p_user:
                     user = sufix
                     num_users += 1
                     continue
-                    
+
                 elif prefix == self.__p_password:
                     password = sufix
 
@@ -126,7 +125,7 @@ class characters:
 
                 if data_dict.get(sitio) is None and token == "" and user != "" and password != "":
                     data_dict[sitio] = {num_users : {"user": user, "password": password}}
-                
+
                 elif data_dict.get(sitio) and token == "" and user != "" and password != "":
                     data_dict[sitio][num_users] = {"user": user, "password": password}
 
@@ -140,5 +139,6 @@ class characters:
 key = b'Sixteen byte key'
 file = r"file.txt"
 ch = characters(key)
-file_text = ch.encript_file(file)
+#ch.encript_file(file)
+file_text = ch.load_data(file)
 print(file_text)
