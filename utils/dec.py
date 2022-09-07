@@ -1,15 +1,14 @@
-import re
 import string
 import random
-from typing import List
-import copy
+import os
 
 from Crypto.Cipher import AES
 
-class characters:
+class SecKeys:
     def __init__(self, key) -> None:
         self.__characters = "~@#_^*%.+:;=" + string.ascii_letters + string.digits
         self.__p_sitio = "//s"
+        self.__p_description = "//d"
         self.__p_user = "//u"
         self.__p_password = "//p"
         self.__p_token = "//t"
@@ -18,9 +17,44 @@ class characters:
         self.__key = self.compr_inputs(key)
         self.__div_word = b"xaelko"
 
-    def encript_file(self, file, key=None) -> None:
+    def encript_file(self, file: str, key:bytes=None) -> None:
+        """encript_file encripts and organize a file.txt using AES algorithm.
+        Args:
+            file (str): Encoding = utf-8, the content must be organized in this way.
+            
+            //s www.Google.com -> Must     - website (it doesn't matter if you put spaces after //s or not)
+            //u User 1         -> Must     - user for the previous website (can store countless users for the same site)
+            //p Password       -> Must     - for User 1
+            //d App/Website    -> Optional - description if you have something important to say
+            //t Token          -> Optional - if you 
+            
+            key (bytes, optional): if you introduce a key, the previous one (The key that was used when initialize the class is replaced)
+                                   if you don't introduce a new key, the previus one will be used.
+
+        Example:
+            The file "file.txt" has inside this information:
+            //s site
+            //u user
+            //p password
+            
+            old_key = b'1234567890123456' # 16 bytes key
+            new_key = b'6543210987654321' # 16 bytes key
+            seck = secKeys(old_key)
+            SecKeys.encript_file("file.txt", new_key)
+            
+            or
+            
+            key = b'1234567890123456' # 16 bytes key
+            seck = SecKeys(key)
+            seck.encript_file("file.txt")
+        """
         if key is None:
             key = self.__key
+        encripted_file = file[:-4] + "_encripted.bin"
+        if os.path.isfile(encripted_file):
+            os.remove(encripted_file)
+        if os.path.isfile(file) is False:
+            raise Exception(FileNotFoundError("File must exist"))
         with open(file, "r", encoding = 'utf-8') as f:
             for line in f:
                 new_line = line.rstrip()
@@ -36,10 +70,10 @@ class characters:
                 elif prefix == self.__p_token:
                     self.__append_encripted_file(self.__p_token + sufix, file)
                     
-        with open(file[:-4] + "_encripted.bin", "rb+") as f:
+        with open(encripted_file, "rb") as f:
             text = f.read()
             text = text[:-6]
-        with open(file[:-4] + "_encripted.bin", "wb+") as f:
+        with open(encripted_file, "wb+") as f:
             f.write(text)
 
     def __append_encripted_file(self, string:str, file):
@@ -204,12 +238,12 @@ class characters:
                 nonce = word[-16:]
                 decript = r"/" + self.__AES_decript(etxt, nonce, tag).decode()[3:-1]
                 out.append(decript)
-        return self.__remove_salt(out)                
+        return self.__remove_salt(out)
 
 key = b'Sixteen byte key'
 file = r"file.txt"
-file_encripted = r"file_encripted.bin"
-ch = characters(key)
+file_encripted = file[:-4] + r"_encripted.bin"
+ch = SecKeys(key)
 #ch.encript_file(file)
 file_text = ch.load_data(file)
 decripted_text = ch.load_and_decript_file(file_encripted)
