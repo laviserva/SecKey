@@ -23,7 +23,7 @@ class SecKeys:
             Input:
                 file (str): Encoding = utf-8, the content must be organized in this way.
                 
-                //s www.Google.com -> Must     - website (it doesn't matter if you put spaces after //s or not)
+                //s www.site_example.com -> Must     - website (it doesn't matter if you put spaces after //s or not)
                 //u User 1         -> Must     - user for the previous website (can store countless users for the same site)
                 //p Password       -> Must     - for User 1
                 //d App/Website    -> Optional - description if you have something important to say
@@ -134,8 +134,8 @@ class SecKeys:
         return plaintext.decode()
     
     def random_password(self, size: int = 32) -> str:
-        out = "/p"
-        for i in range(size):
+        out = self.__p_password
+        for _ in range(size):
             out += random.choice(self.__characters)
         return out
                 
