@@ -98,7 +98,7 @@ class SecKeys:
         """
             
     def __salt_and_encript(self, string: str) -> tuple[bytes, bytes, bytes]:
-        key = str(self.__key)
+        key = self.__key.decode()
         out = key[0] + string[0] + key[1] + string[1:-1] + key[-2] + string[-1] + key[-1]
         return self.__AES_encript(out)
             
@@ -109,7 +109,7 @@ class SecKeys:
         etxt, tag = encript_cipher.encrypt_and_digest(string)
         return etxt + tag + nonce
     
-    def __AES_decript(self, ciphertext: bytes, nonce: bytes, tag:bytes) -> str:
+    def __AES_decript(self, key: bytes, ciphertext: bytes, nonce: bytes, tag:bytes) -> str:
         cipher = AES.new(key, AES.MODE_EAX, nonce)
         data = cipher.decrypt_and_verify(ciphertext, tag)
         return data
@@ -188,7 +188,7 @@ class SecKeys:
                             break
         return data_dict
 
-    def __remove_salt(self, salty_list: list) -> list:
+    def __remove_salt(self, salty_list: list) -> dict:
         num_users = 0
         sites = []
         sitio = ""
@@ -199,8 +199,8 @@ class SecKeys:
         
         for item in salty_list:
             new_line = item.rstrip()
-            prefix = new_line[:3]
-            sufix = new_line[3:-2] + new_line[-1]
+            prefix = new_line[1] + new_line[3:5]
+            sufix = new_line[5:-3] + new_line[-2]
             
             if prefix == self.__p_sitio:
                 sitio = sufix
@@ -238,18 +238,26 @@ class SecKeys:
                         break
         return data_dict
     
-    def load_and_decript_file(self, file, key=None) -> list:
-        out = []
+    def load_and_decript_file(self, encripted_file: str, key: bytes = None) -> list:
+        if os.path.isfile(encripted_file) is False:
+            raise Exception(FileNotFoundError("File must exist"))
+        
         if key is None:
+            print("Key has not introduced. Using the previous key")
             key = self.__key
-        with open(file, "rb") as f:
+            
+        out = []
+        with open(encripted_file, "rb") as f:
             lines = f.read()
             words = lines.split(self.__div_word)
             for word in words:
                 etxt = word[:-32]
                 tag = word[-32:-16]
                 nonce = word[-16:]
-                decript = r"/" + self.__AES_decript(etxt, nonce, tag).decode()[3:-1]
+                try:
+                    decript = self.__AES_decript(key, etxt, nonce, tag).decode()
+                except:
+                    raise (Exception(ValueError("MAC chekc failed. The introduced key is incorrect")))
                 out.append(decript)
         return self.__remove_salt(out)
 
@@ -259,4 +267,6 @@ file_encripted = file[:-4] + r"_encripted.bin"
 ch = SecKeys(key)
 ch.encript_file(file)
 file_text = ch.load_data(file)
-decripted_text = ch.load_and_decript_file(file_encripted)
+#decripted_text = ch.load_and_decript_file(file_encripted, b'Sixteen byte ke1') # Error
+decripted_text = ch.load_and_decript_file(file_encripted, key) # ok
+#decripted_text = ch.load_and_decript_file(file_encripted) # Ok
