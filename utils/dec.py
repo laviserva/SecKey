@@ -16,6 +16,89 @@ class SecKeys:
             raise Exception(ValueError("Incorrect AES key length. It must be 16"))
         self.__key = self.compr_inputs(key)
         self.__div_word = b"xaelko"
+        
+    def __AES_decript(self, key: bytes, ciphertext: bytes, nonce: bytes, tag:bytes) -> bytes:
+        cipher = AES.new(key, AES.MODE_EAX, nonce)
+        data = cipher.decrypt_and_verify(ciphertext, tag)
+        return data
+    
+    def __AES_encript(self, string, key:bytes = None) -> tuple[bytes, bytes, bytes]:
+        if key is None:
+            key = self.__key.decode()
+        else:
+            self.__key = key
+        encript_cipher = AES.new(self.__key, AES.MODE_EAX)
+        nonce = encript_cipher.nonce
+        string = self.compr_inputs(string)
+        etxt, tag = encript_cipher.encrypt_and_digest(string)
+        return etxt + tag + nonce
+    
+    def add_data_to_file(self, data:list[str], encripted_file: str) -> None:
+        """add a structured data in a encripted file. for adding new sites, users and passwords
+
+        Args:
+            data (list[str]): must be a list of strings where you should have the next structure:
+            data = ["//ssite", "//uuser", "//ppassword"]
+            encripted_file (str): Path of the encripted file
+
+        Raises:
+            Exception - FileExistError: Verify if exist encripted file if not, exception will rise.
+            Exception - ValueError: If the extension is not .bin then, exception will rise.
+            Exception - ValueError: Check if the input data has the correct prefixes.
+
+        Returns:
+            None
+        """
+        if os.path.exists(encripted_file) is not True:
+            raise Exception(FileExistsError(f"File {encripted_file} doesn't exist"))
+        if encripted_file[-4:] != ".bin":
+            raise Exception(ValueError(f"Extension of the file {encripted_file} must be .bin and not '.{encripted_file.rpartition('.')[-1]}'"))
+        
+        encripted_data = []
+        test_data = [dat[:3] for dat in data]
+        if self.__p_sitio not in test_data or self.__p_user not in test_data or self.__p_password not in test_data:
+            raise Exception(ValueError(f"Input data must have the prefix //s, //u, //p (site, user and passwords) written."))
+        del(test_data)
+        
+        for item in data:
+            new_line = item.rstrip()
+            prefix = new_line[:3]
+            sufix = new_line[3:].strip()
+            if prefix == self.__p_sitio:
+                salt_string = self.__salt_and_encript(self.__p_sitio + sufix) + self.__div_word
+                encripted_data.append(salt_string)
+            elif prefix == self.__p_user:
+                salt_string = self.__salt_and_encript(self.__p_user + sufix) + self.__div_word
+                encripted_data.append(salt_string)
+            elif prefix == self.__p_password:
+                salt_string = self.__salt_and_encript(self.__p_password + sufix) + self.__div_word
+                encripted_data.append(salt_string)
+            elif prefix == self.__p_token:
+                salt_string = self.__salt_and_encript(self.__p_token + sufix) + self.__div_word
+                encripted_data.append(salt_string)
+
+        with open(encripted_file, "ab") as f:
+            f.writelines(encripted_data)
+        return None
+
+    def compr_inputs(self, inputs):
+        if isinstance(inputs, bytes):
+            inputs = inputs
+        elif isinstance(inputs, str):
+            inputs = inputs.encode()
+        elif isinstance(inputs, (int, float)):
+            inputs = str(inputs).encode()
+        else:
+            raise Exception(TypeError("Input data must be int or str or bytes"))
+        return inputs
+    
+    def __decifr(self, encript_text):
+        self.__decript_cipher = AES.new(self.__key, AES.MODE_EAX, nonce=self.__nonce) # fix nonce
+        plaintext = self.__decript_cipher.decrypt(encript_text)
+        return plaintext.decode()
+
+    def decrifrado(self, encript_text):
+        return self.__decifr(encript_text)
 
     def encript_file(self, file: str, key:bytes=None) -> None:
         """encript_file encripts and organize a file.txt using AES algorithm.
@@ -85,60 +168,34 @@ class SecKeys:
                     salt_string = self.__salt_and_encript(self.__p_token + sufix) + self.__div_word
                     encripted_data.append(salt_string)
                     
-        encripted_data[-1] = encripted_data[-1][:-len(self.__div_word)]
-
-        with open(encripted_file, "wb+") as f:
+        with open(encripted_file, "wb") as f:
             f.writelines(encripted_data)
-
-    def __append_to_encripted_file(self, string:str, file):
-        pass
-        """
-        with open(out_file, "r+") as file_out:
-            ...
-        """
+    
+    def load_and_decript_file(self, encripted_file: str, key: bytes = None) -> list:
+        if os.path.isfile(encripted_file) is False:
+            raise Exception(FileNotFoundError("File must exist"))
+        
+        if key is None:
+            print("Key has not been introduced. Using the previous key")
+            key = self.__key
             
-    def __salt_and_encript(self, string: str) -> tuple[bytes, bytes, bytes]:
-        key = self.__key.decode()
-        out = key[0] + string[0] + key[1] + string[1:-1] + key[-2] + string[-1] + key[-1]
-        return self.__AES_encript(out)
+        out = []
+        with open(encripted_file, "rb") as f:
+            lines = f.read()
+            words = lines.split(self.__div_word)
+            for word in words:
+                if word == b"":
+                    continue
+                etxt = word[:-32]
+                tag = word[-32:-16]
+                nonce = word[-16:]
+                try:
+                    decript = self.__AES_decript(key, etxt, nonce, tag).decode()
+                except:
+                    raise (Exception(ValueError("MAC chekc failed. The introduced key is incorrect")))
+                out.append(decript)
+        return self.__remove_salt(out)
             
-    def __AES_encript(self, string) -> tuple[bytes, bytes, bytes]:
-        encript_cipher = AES.new(self.__key, AES.MODE_EAX)
-        nonce = encript_cipher.nonce
-        string = self.compr_inputs(string)
-        etxt, tag = encript_cipher.encrypt_and_digest(string)
-        return etxt + tag + nonce
-    
-    def __AES_decript(self, key: bytes, ciphertext: bytes, nonce: bytes, tag:bytes) -> str:
-        cipher = AES.new(key, AES.MODE_EAX, nonce)
-        data = cipher.decrypt_and_verify(ciphertext, tag)
-        return data
-
-    def compr_inputs(self, inputs):
-        if isinstance(inputs, bytes):
-            inputs = inputs
-        elif isinstance(inputs, str):
-            inputs = inputs.encode()
-        elif isinstance(inputs, (int, float)):
-            inputs = str(inputs).encode()
-        else:
-            raise Exception(TypeError("Input data must be int or str or bytes"))
-        return inputs
-    
-    def decrifrado(self, encript_text):
-        return self.__decifr(encript_text)
-    
-    def __decifr(self, encript_text):
-        self.__decript_cipher = AES.new(self.__key, AES.MODE_EAX, nonce=self.__nonce) # fix nonce
-        plaintext = self.__decript_cipher.decrypt(encript_text)
-        return plaintext.decode()
-    
-    def random_password(self, size: int = 32) -> str:
-        out = self.__p_password
-        for _ in range(size):
-            out += random.choice(self.__characters)
-        return out
-                
     def load_data(self, filename: str) -> list[str]:
         sitio = ""
         user = ""
@@ -188,8 +245,13 @@ class SecKeys:
                             break
         return data_dict
 
+    def random_password(self, size: int = 32) -> str:
+        out = self.__p_password
+        for _ in range(size):
+            out += random.choice(self.__characters)
+        return out
+
     def __remove_salt(self, salty_list: list) -> dict:
-        num_users = 0
         sites = []
         sitio = ""
         user = ""
@@ -214,7 +276,6 @@ class SecKeys:
 
             elif prefix == self.__p_user:
                 user = sufix
-                num_users += 1
                 continue
 
             elif prefix == self.__p_password:
@@ -226,9 +287,10 @@ class SecKeys:
                 continue
             
             if data_dict.get(sitio) is None and token == "" and user != "" and password != "":
-                data_dict[sitio] = {num_users : {"user": user, "password": password}}
+                data_dict[sitio] = {1 : {"user": user, "password": password}}
 
             elif data_dict.get(sitio) and token == "" and user != "" and password != "":
+                num_users = len(data_dict[sitio]) + 1
                 data_dict[sitio][num_users] = {"user": user, "password": password}
 
             elif data_dict.get(sitio) and token != "" and user != "" and password != "":
@@ -237,36 +299,11 @@ class SecKeys:
                         data_dict[sitio][number]["token"] = token
                         break
         return data_dict
-    
-    def load_and_decript_file(self, encripted_file: str, key: bytes = None) -> list:
-        if os.path.isfile(encripted_file) is False:
-            raise Exception(FileNotFoundError("File must exist"))
-        
-        if key is None:
-            print("Key has not introduced. Using the previous key")
-            key = self.__key
-            
-        out = []
-        with open(encripted_file, "rb") as f:
-            lines = f.read()
-            words = lines.split(self.__div_word)
-            for word in words:
-                etxt = word[:-32]
-                tag = word[-32:-16]
-                nonce = word[-16:]
-                try:
-                    decript = self.__AES_decript(key, etxt, nonce, tag).decode()
-                except:
-                    raise (Exception(ValueError("MAC chekc failed. The introduced key is incorrect")))
-                out.append(decript)
-        return self.__remove_salt(out)
 
-key = b'Sixteen byte key'
-file = r"file.txt"
-file_encripted = file[:-4] + r"_encripted.bin"
-ch = SecKeys(key)
-ch.encript_file(file)
-file_text = ch.load_data(file)
-#decripted_text = ch.load_and_decript_file(file_encripted, b'Sixteen byte ke1') # Error
-decripted_text = ch.load_and_decript_file(file_encripted, key) # ok
-#decripted_text = ch.load_and_decript_file(file_encripted) # Ok
+    def __salt_and_encript(self, string: str, key:bytes = None) -> tuple[bytes, bytes, bytes]:
+        if key is None:
+            key = self.__key.decode()
+        else:
+            self.__key = key
+        out = key[0] + string[0] + key[1] + string[1:-1] + key[-2] + string[-1] + key[-1]
+        return self.__AES_encript(out)
