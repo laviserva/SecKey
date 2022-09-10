@@ -37,7 +37,12 @@ class GUI:
 
         load_file_button = ttk.Button(win, text="Load File", width = self.place_width, command=self.calculate)
         load_file_button.place(relx=self.place_in_center, rely=self.place_starting+self.place_step, anchor=CENTER)
+        
+        pixel = tk.PhotoImage(file=r"image.png", width=100, height=100)
+        button = tk.Button(win, text="", image=pixel, width=100, height=100, compound="c")
+        button.place(relx=self.place_in_center, rely=self.place_starting+self.place_step, anchor=CENTER)
 
+        """
         Load_key_button = ttk.Button(win, text="Load File", width = self.place_width, command=self.calculate)
         Load_key_button.place(relx=self.place_in_center, rely=self.place_starting+self.place_step*2, anchor=CENTER)
         
@@ -49,6 +54,7 @@ class GUI:
         
         font = self.get_font_shape(text, self.font)[0]
         total_len = self.place_width_porcentage
+
         
         label.place(relx=total_len, rely=self.place_starting+self.place_step*3, anchor=W)
         key_entry.place(relx=0.55, rely=self.place_starting+self.place_step*3, anchor=CENTER)
@@ -56,6 +62,7 @@ class GUI:
         #string:
         Load_key_button = ttk.Button(win, text="Ok", width = self.place_width, command=self.calculate)
         Load_key_button.place(relx=self.place_in_center, rely=self.place_starting+self.place_step*4.5, anchor=CENTER)
+        """
 
         win.mainloop()
         
