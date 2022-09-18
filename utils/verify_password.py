@@ -27,7 +27,7 @@ class verify_password(EaD):
         self.__entry_value = None
         self.file = None
     
-    def __resize_image(self, img, width=20, height=20) -> ImageTk:
+    def __resize_image(self, img, width=14, height=14) -> ImageTk:
         image = Image.open(img)
         resize = image.resize((width, height))
         return ImageTk.PhotoImage(resize)
@@ -35,7 +35,7 @@ class verify_password(EaD):
     def __create_windows(self) -> None:
         self.win=tk.Tk()
         self.win.title("Verify Password")
-        self.win.wm_attributes('-toolwindow', 'True')
+        #self.win.wm_attributes('-toolwindow', 'True')
         self.win.resizable(width=False, height=False)
         
         # Set the geometry of the window
@@ -91,8 +91,9 @@ class verify_password(EaD):
         self.__create_windows()
         
     def __load_password(self, key_entry: ttk.Entry) -> None:
-        self.__entry_value = key_entry.get()
+        self.__entry_value = key_entry.get().encode()
         if self.file == None or self.file[-4:] != ".bin":
             raise Exception(ValueError("Error in file"))
-        self.load_and_decript_file(self.file, self.__entry_value)
-        self.win.destroy()
+        out = self.load_and_decript_file(self.file, self.__entry_value)
+        print("Key: ", self.__entry_value)
+        print(out)
