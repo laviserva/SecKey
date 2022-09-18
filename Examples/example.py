@@ -12,12 +12,17 @@ from utils.dec import EaD
 key = b'Sixteen byte key'
 
 # Files from we import the data
-file = r"file.txt" # must be organized -> //u, //s, //p
-file_encripted = file[:-4] + r"_encripted.bin" # Where the encripted data will go
+file = r"file.txt" # must be organized -> //u, //s, //p, //d
+"""
+Warning - avoid using .txt files
+"""
+file_encripted = file[:-4] + r"_encripted.bin" # Where the encripted data will be
 
 ch = EaD()
 ch.encript_file(file, key)
 
+# Loading normal file organized -> //u, //s, //p, //d
+file_text = ch.load_data(file)
  
 """
 # Encript and add this information to the file encripted.
@@ -27,15 +32,6 @@ ch.encript_file(file, key)
 """
 ch.add_data_to_file(["//ssite4", "//uuser4", "//ppass4"], file_encripted, key) 
 ch.add_data_to_file(["//ssite1", "//uuser5", "//ppass5", "ignored"], file_encripted, key)
-file_text = ch.load_data(file)
 
-# There are 2 differents forms to load and decript a file.
 key =     b'Sixteen byte key'
-new_key = b'A new key to use'
-diferent_encripted_file = "different.bin"
-#decripted_text = ch.load_and_decript_file(file_encripted, b'Sixteen byte ke1') # Exception - not right key.
-#decripted_text = ch.load_and_decript_file(diferent_encripted_file, new_key) # Ok (uses a diferent key from where you initialize the class)
-decripted_text = ch.load_and_decript_file(file_encripted, key) # Ok uses the previous one key. (new_key, if it was uncommented)
-print(decripted_text)
-# Recomended if you will uses diferents files and keys
-#decripted_text = ch.load_and_decript_file(file_encripted, key) # Ok (uses a diferent key from where you initialize the class)
+decripted_text = ch.load_and_decript_file(file_encripted, key)
