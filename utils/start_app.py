@@ -18,7 +18,6 @@ class start_app(EaD):
         self.state = start_app_state.ALIVE
         self.width  = 300
         self.height = 400
-        self.geometry = f"{str(self.width)}x{str(self.height)}"
         
         self.place_starting = 0.2
         self.place_step = 0.1
@@ -66,7 +65,12 @@ class start_app(EaD):
     
     def init_window(self) -> None:
         self.win=tk.Tk()
+        screen_width  = self.win.winfo_screenwidth()
+        screen_height = self.win.winfo_screenheight()
+        x_coordinates = screen_width//2 - self.width//2
+        y_coordinates = screen_height//2 - self.height//2
         self.win.title("SecKey")
+        self.geometry = f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}"
         self.win.iconphoto(False, tk.PhotoImage(file=r"resources\sk.png"))
         #self.win.wm_attributes('-toolwindow', 'True') # Hide icon
         self.win.resizable(width=False, height=False)
@@ -79,7 +83,7 @@ class start_app(EaD):
                        width=self.width,
                        height=self.height,
                        bg = self.bg_color)
-        frame.pack(fill = tk.X, padx=20, pady=20)
+        #frame.pack(fill = tk.X, padx=20, pady=20)
         frame.grid(row=0, column=0, sticky="NW")
         #frame.config(bg = "#fcfcfc")
 
