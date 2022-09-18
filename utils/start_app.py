@@ -35,13 +35,6 @@ class start_app(EaD):
             self.win.destroy()
         self.state = start_app_state.CLOSED
     
-    def show_password(self, key):
-        if self.show == "*":
-            self.show = ""
-        elif self.show == "":
-            self.show = "*"
-        key["show"] = self.show
-        
     def open_encrypted_file(self):
         text_file_extensions = ['*.bin']
         ftypes = [
