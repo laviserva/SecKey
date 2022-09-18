@@ -19,11 +19,9 @@ class EaD:
         data = cipher.decrypt_and_verify(ciphertext, tag)
         return data
     
-    def __AES_encript(self, string, key:bytes) -> tuple[bytes, bytes, bytes]:
-
+    def __AES_encript(self, string: str, key:bytes) -> tuple[bytes, bytes, bytes]:
         encript_cipher = AES.new(key, AES.MODE_EAX)
         nonce = encript_cipher.nonce
-        string = self.__compr_inputs(string)
         etxt, tag = encript_cipher.encrypt_and_digest(string)
         return etxt + tag + nonce
     
@@ -73,18 +71,6 @@ class EaD:
 
         with open(encripted_file, "ab") as f:
             f.writelines(encripted_data)
-        return None
-
-    def __compr_inputs(self, inputs):
-        if isinstance(inputs, bytes):
-            inputs = inputs
-        elif isinstance(inputs, str):
-            inputs = inputs.encode()
-        elif isinstance(inputs, (int, float)):
-            inputs = str(inputs).encode()
-        else:
-            raise Exception(TypeError("Input data must be int or str or bytes"))
-        return inputs
 
     def encript_file(self, file: str, key:bytes=None) -> None:
         """encript_file encripts and organize a file.txt using AES algorithm.
@@ -127,7 +113,7 @@ class EaD:
         
         encripted_file = file[:-4] + "_encripted.bin"
         if os.path.isfile(encripted_file):
-            os.remove(encripted_file)
+            raise Exception(FileExistsError(f"Exist an encripted file called {encripted_file}"))
         if os.path.isfile(file) is False:
             raise Exception(FileNotFoundError("File must exist"))
         encripted_data = []
@@ -157,7 +143,7 @@ class EaD:
     def load_and_decript_file(self, encripted_file: str, key: bytes) -> list:
         if os.path.isfile(encripted_file) is False:
             raise Exception(FileNotFoundError("File must exist"))
-            
+        
         out = []
         with open(encripted_file, "rb") as f:
             lines = f.read()
