@@ -30,12 +30,12 @@ class start_app(EaD):
         self.show = "*"
         self.__file = None
         
-    def __on_closing(self):
+    def __on_closing(self) -> None:
         if tk.messagebox.askokcancel("Quit", "Do you want to quit?"):
             self.win.destroy()
         self.state = start_app_state.CLOSED
     
-    def open_encrypted_file(self):
+    def __open_encrypted_file(self) -> None:
         text_file_extensions = ['*.bin']
         ftypes = [
             ('.Bin (Encripted)', text_file_extensions)]
@@ -45,7 +45,7 @@ class start_app(EaD):
         self.win.destroy()
         self.state = start_app_state.LOADING_FILE
     
-    def init_window(self):
+    def init_window(self) -> None:
         self.win=tk.Tk()
         self.win.title("SecKey")
         self.win.wm_attributes('-toolwindow', 'True')
@@ -66,14 +66,14 @@ class start_app(EaD):
         create_file_button = ttk.Button(self.win, text="Create File", width = self.place_width)
         create_file_button.place(relx=self.place_in_center, rely=self.place_starting+self.place_step, anchor=CENTER)
  
-        Load_key_button = ttk.Button(self.win, text="Load File", width = self.place_width, command=self.open_encrypted_file)
+        Load_key_button = ttk.Button(self.win, text="Load File", width = self.place_width, command=self.__open_encrypted_file)
         Load_key_button.place(relx=self.place_in_center, rely=self.place_starting+self.place_step*2, anchor=CENTER)
 
         self.win.protocol("WM_DELETE_WINDOW", self.__on_closing)
         self.win.mainloop()
         return self.__file
         
-    def get_font_shape(self, string: str, font: str = None, font_size: int = 12) -> tuple:
+    def __get_font_shape(self, string: str, font: str = None, font_size: int = 12) -> tuple:
         if font is None:
             font = self.font
         font_init = ImageFont.truetype(font, font_size)
