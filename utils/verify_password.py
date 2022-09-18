@@ -1,9 +1,16 @@
 # Verify and decript
 import tkinter as tk
 from tkinter import ttk, W, CENTER, StringVar
+from turtle import bgcolor
 from dec import EaD # Encript and Decript
 
 from PIL import Image, ImageTk
+from enum import Enum, auto
+
+class Verify_password_state(Enum):
+    ALIVE = auto()
+    DESTROYED = auto()
+    RETURN_TO_MAIN = auto()
 
 class verify_password(EaD):
     image = None
@@ -11,14 +18,23 @@ class verify_password(EaD):
         super().__init__()
         self.width  = 300
         self.height = 400
-        self.geometry = f"{str(self.width)}x{str(self.height)}"
         
         self.__place_starting = 0.2
         self.__place_step = 0.1
         self.__place_in_center = 0.5
         self.__place_width_porcentage = 0.125 #38
         self.__place_width = int(self.__place_width_porcentage * self.width)
-        self.__font = "arial.ttf"
+        self.__place_height_porcentage = 0.125/2 #38
+        self.__place_height = int(self.__place_height_porcentage * self.height)
+        
+        self.font = "Times"
+        self.font_size_h1 = 50
+        self.font_size_n = 16
+        self.title_font_color = "#d8de76"
+        self.Label_color = "#87d2fa"
+        self.ok_button_fg_color = "#87d2fa"
+        self.return_button_fg_color = "#ff7777"
+        self.bg_color = "#1e1e1e"
 
         self.__show = "*"
         self.__show_password_image = r"resources\show_password.png"
@@ -26,15 +42,34 @@ class verify_password(EaD):
         self.__image = None
         self.__entry_value = None
         self.file = None
+        
+    def __on_enter(self, button: tk.Button, bg: str, fg: str) -> None:
+        button["background"] = fg
+        button["foreground"] = bg
+    
+    def __on_leave(self, button: tk.Button, bg: str, fg: str) -> None:
+        button["background"] = bg
+        button["foreground"] = fg
     
     def __resize_image(self, img, width=14, height=14) -> ImageTk:
         image = Image.open(img)
         resize = image.resize((width, height))
         return ImageTk.PhotoImage(resize)
 
+    def __return_button(self) -> None:
+        self.state = Verify_password_state.RETURN_TO_MAIN
+        self.win.destroy()
+
     def __create_windows(self) -> None:
+        self.state = Verify_password_state.ALIVE
         self.win=tk.Tk()
         self.win.title("Verify Password")
+        self.win.iconphoto(False, tk.PhotoImage(file=r"resources\sk.png"))
+        screen_width  = self.win.winfo_screenwidth()
+        screen_height = self.win.winfo_screenheight()
+        x_coordinates = screen_width//2 - self.width//2
+        y_coordinates = screen_height//2 - self.height//2
+        self.geometry = f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}"
         #self.win.wm_attributes('-toolwindow', 'True')
         self.win.resizable(width=False, height=False)
         
@@ -42,41 +77,79 @@ class verify_password(EaD):
         self.win.geometry(self.geometry)
         
         # Create a frame widget
-        frame=tk.Frame(self.win, width=self.width, height=self.height)
+        frame=tk.Frame(self.win,
+                       bg = self.bg_color,
+                       width=self.width,
+                       height=self.height)
         frame.grid(row=0, column=0, sticky="NW")
 
         # Create a label widget
-        label=tk.Label(self.win, text="SecKeys", font=self.__font)
+        label=tk.Label(self.win,
+                       text="SecKeys",
+                       font = (self.font, self.font_size_h1),
+                       fg = self.title_font_color,
+                       bg = self.bg_color,
+                       anchor="w")
         label.place(relx=self.__place_in_center, rely=self.__place_starting, anchor=CENTER)
         
         # Create a label widget
         key_entry_var = StringVar()
         text = "Key: "
-        label=tk.Label(self.win, text=text)
+        label=tk.Label(self.win,
+                       text=text,
+                       font = self.font,
+                       bg = self.bg_color,
+                       fg = self.Label_color
+                       )
         label.place(relx=self.__place_width_porcentage-0.08, rely=self.__place_starting+self.__place_step*3, anchor=W)
         
         # Textbox input
-        key_entry = ttk.Entry(self.win, width=31, textvariable=key_entry_var, show=self.__show)
+        key_entry = tk.Entry(self.win,
+                             width=31,
+                             textvariable = key_entry_var,
+                             show=self.__show)
         key_entry.place(relx=0.56-0.08, rely=self.__place_starting+self.__place_step*3, anchor=CENTER)
         
         self.__image = self.__resize_image(self.__show_password_image)
-        show_pw_button = ttk.Button(self.win,
+        show_pw_button = tk.Button(self.win,
                                     image=self.__image,
-                                    width = 2,
+                                    width = 15,
+                                    bg = self.bg_color,
+                                    border = 0,
+                                    activebackground = self.bg_color,
                                     command= lambda: self.__show_password(key_entry, show_pw_button))
         show_pw_button.place(relx=0.56+0.3, rely=self.__place_starting+self.__place_step*3, anchor=CENTER)
 
         # Ok button
-        ok_button = ttk.Button(self.win, text="Ok", width = self.__place_width//2 - 5, command = lambda: self.__load_password(key_entry))
-        ok_button.place(relx=self.__place_in_center - 0.2, rely=self.__place_starting+self.__place_step*5, anchor=CENTER)
-        
+        ok_button = tk.Button(self.win, text="Ok",
+                              width  = self.__place_width//2 - 5,
+                              height = self.__place_height//2 -5,
+                              fg = self.ok_button_fg_color,
+                              bg = self.bg_color,
+                              border = 0,
+                              activebackground = self.bg_color,
+                              activeforeground = self.ok_button_fg_color,
+                              command = lambda: self.__load_password(key_entry))
+        ok_button.place(relx=self.__place_in_center - 0.2, rely=self.__place_starting+self.__place_step*6, anchor=CENTER)
+        ok_button.bind("<Enter>", lambda event: self.__on_enter(ok_button, self.bg_color, self.ok_button_fg_color))
+        ok_button.bind("<Leave>", lambda event: self.__on_leave(ok_button, self.bg_color, self.ok_button_fg_color))
         # Cancel button
-        cancel_button = ttk.Button(self.win, text="Cancelar", width = self.__place_width//2 -5)
-        cancel_button.place(relx=self.__place_in_center + 0.2, rely=self.__place_starting+self.__place_step*5, anchor=CENTER)
-        
+        return_button = tk.Button(self.win,
+                                  text="Back to main",
+                                  width = self.__place_width//2 -5,
+                                  height = self.__place_height//2 -5,
+                                  fg = self.return_button_fg_color,
+                                  bg = self.bg_color,
+                                  activebackground = self.bg_color,
+                                  activeforeground = self.return_button_fg_color,
+                                  border = 0,
+                                  command=self.__return_button)
+        return_button.place(relx=self.__place_in_center + 0.2, rely=self.__place_starting+self.__place_step*6, anchor=CENTER)
+        return_button.bind("<Enter>", lambda event: self.__on_enter(return_button, self.bg_color, self.return_button_fg_color))
+        return_button.bind("<Leave>", lambda event: self.__on_leave(return_button, self.bg_color, self.return_button_fg_color))
         self.win.mainloop()
         
-    def __show_password(self, key: tk.Entry, button: ttk.Button) -> None:
+    def __show_password(self, key: tk.Entry, button: tk.Button) -> None:
         if self.__show == "*":
             self.__show = ""
             self.__image = self.__resize_image(self.__hide_password_image)
@@ -90,10 +163,12 @@ class verify_password(EaD):
         self.file = filename
         self.__create_windows()
         
-    def __load_password(self, key_entry: ttk.Entry) -> None:
+    def __load_password(self, key_entry: tk.Entry) -> None:
         self.__entry_value = key_entry.get().encode()
         if self.file == None or self.file[-4:] != ".bin":
             raise Exception(ValueError("Error in file"))
         out = self.load_and_decript_file(self.file, self.__entry_value)
-        print("Key: ", self.__entry_value)
         print(out)
+
+#A = verify_password()
+#A.Validation("file_encripted.bin")
