@@ -33,5 +33,5 @@ file_text = ch.load_data(file)
 ch.add_data_to_file(["//ssite4", "//uuser4", "//ppass4"], file_encripted, key) 
 ch.add_data_to_file(["//ssite1", "//uuser5", "//ppass5", "ignored"], file_encripted, key)
 
-key =     b'Sixteen byte key'
+key = b'Sixteen byte key'
 decripted_text = ch.load_and_decript_file(file_encripted, key)
