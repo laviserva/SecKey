@@ -58,6 +58,8 @@ class start_app(EaD):
             ('.Bin (Encripted)', text_file_extensions)]
         filename = filedialog.askopenfilename(initialdir=os.getcwd(), title="Select file",
                                            filetypes=ftypes)
+        if not filename:
+            return
         self.__file =  filename
         self.win.destroy()
         self.state = start_app_state.LOADING_FILE
@@ -122,6 +124,3 @@ class start_app(EaD):
         self.win.protocol("WM_DELETE_WINDOW", self.__on_closing)
         self.win.mainloop()
         return self.__file
-
-ejemplo = start_app()
-ejemplo.init_window()
