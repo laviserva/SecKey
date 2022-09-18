@@ -4,17 +4,14 @@ import os
 
 from Crypto.Cipher import AES
 
-class SecKeys:
-    def __init__(self, key) -> None:
+class EaD:
+    def __init__(self) -> None:
         self.__characters = "~@#_^*%.+:;=" + string.ascii_letters + string.digits
         self.__p_sitio = "//s"
         self.__p_description = "//d"
         self.__p_user = "//u"
         self.__p_password = "//p"
         self.__p_token = "//t"
-        if len(key) != 16:
-            raise Exception(ValueError("Incorrect AES key length. It must be 16"))
-        self.__key = self.compr_inputs(key)
         self.__div_word = b"xaelko"
         
     def __AES_decript(self, key: bytes, ciphertext: bytes, nonce: bytes, tag:bytes) -> bytes:
@@ -22,18 +19,15 @@ class SecKeys:
         data = cipher.decrypt_and_verify(ciphertext, tag)
         return data
     
-    def __AES_encript(self, string, key:bytes = None) -> tuple[bytes, bytes, bytes]:
-        if key is None:
-            key = self.__key.decode()
-        else:
-            self.__key = key
-        encript_cipher = AES.new(self.__key, AES.MODE_EAX)
+    def __AES_encript(self, string, key:bytes) -> tuple[bytes, bytes, bytes]:
+
+        encript_cipher = AES.new(key, AES.MODE_EAX)
         nonce = encript_cipher.nonce
-        string = self.compr_inputs(string)
+        string = self.__compr_inputs(string)
         etxt, tag = encript_cipher.encrypt_and_digest(string)
         return etxt + tag + nonce
     
-    def add_data_to_file(self, data:list[str], encripted_file: str) -> None:
+    def add_data_to_file(self, data:list[str], encripted_file: str, key: bytes) -> None:
         """add a structured data in a encripted file. for adding new sites, users and passwords
 
         Args:
@@ -65,23 +59,23 @@ class SecKeys:
             prefix = new_line[:3]
             sufix = new_line[3:].strip()
             if prefix == self.__p_sitio:
-                salt_string = self.__salt_and_encript(self.__p_sitio + sufix) + self.__div_word
+                salt_string = self.__salt_and_encript(self.__p_sitio + sufix, key) + self.__div_word
                 encripted_data.append(salt_string)
             elif prefix == self.__p_user:
-                salt_string = self.__salt_and_encript(self.__p_user + sufix) + self.__div_word
+                salt_string = self.__salt_and_encript(self.__p_user + sufix, key) + self.__div_word
                 encripted_data.append(salt_string)
             elif prefix == self.__p_password:
-                salt_string = self.__salt_and_encript(self.__p_password + sufix) + self.__div_word
+                salt_string = self.__salt_and_encript(self.__p_password + sufix, key) + self.__div_word
                 encripted_data.append(salt_string)
             elif prefix == self.__p_token:
-                salt_string = self.__salt_and_encript(self.__p_token + sufix) + self.__div_word
+                salt_string = self.__salt_and_encript(self.__p_token + sufix, key) + self.__div_word
                 encripted_data.append(salt_string)
 
         with open(encripted_file, "ab") as f:
             f.writelines(encripted_data)
         return None
 
-    def compr_inputs(self, inputs):
+    def __compr_inputs(self, inputs):
         if isinstance(inputs, bytes):
             inputs = inputs
         elif isinstance(inputs, str):
@@ -91,14 +85,6 @@ class SecKeys:
         else:
             raise Exception(TypeError("Input data must be int or str or bytes"))
         return inputs
-    
-    def __decifr(self, encript_text):
-        self.__decript_cipher = AES.new(self.__key, AES.MODE_EAX, nonce=self.__nonce) # fix nonce
-        plaintext = self.__decript_cipher.decrypt(encript_text)
-        return plaintext.decode()
-
-    def decrifrado(self, encript_text):
-        return self.__decifr(encript_text)
 
     def encript_file(self, file: str, key:bytes=None) -> None:
         """encript_file encripts and organize a file.txt using AES algorithm.
@@ -144,9 +130,6 @@ class SecKeys:
             os.remove(encripted_file)
         if os.path.isfile(file) is False:
             raise Exception(FileNotFoundError("File must exist"))
-        
-        if key is None:
-            key = self.__key
         encripted_data = []
         
         with open(file, "r", encoding = 'utf-8') as f:
@@ -156,28 +139,24 @@ class SecKeys:
                 sufix = new_line[3:].strip()
                 
                 if prefix == self.__p_sitio:
-                    salt_string = self.__salt_and_encript(self.__p_sitio + sufix) + self.__div_word
+                    salt_string = self.__salt_and_encript(self.__p_sitio + sufix, key) + self.__div_word
                     encripted_data.append(salt_string)
                 elif prefix == self.__p_user:
-                    salt_string = self.__salt_and_encript(self.__p_user + sufix) + self.__div_word
+                    salt_string = self.__salt_and_encript(self.__p_user + sufix, key) + self.__div_word
                     encripted_data.append(salt_string)
                 elif prefix == self.__p_password:
-                    salt_string = self.__salt_and_encript(self.__p_password + sufix) + self.__div_word
+                    salt_string = self.__salt_and_encript(self.__p_password + sufix, key) + self.__div_word
                     encripted_data.append(salt_string)
                 elif prefix == self.__p_token:
-                    salt_string = self.__salt_and_encript(self.__p_token + sufix) + self.__div_word
+                    salt_string = self.__salt_and_encript(self.__p_token + sufix, key) + self.__div_word
                     encripted_data.append(salt_string)
                     
         with open(encripted_file, "wb") as f:
             f.writelines(encripted_data)
     
-    def load_and_decript_file(self, encripted_file: str, key: bytes = None) -> list:
+    def load_and_decript_file(self, encripted_file: str, key: bytes) -> list:
         if os.path.isfile(encripted_file) is False:
             raise Exception(FileNotFoundError("File must exist"))
-        
-        if key is None:
-            print("Key has not been introduced. Using the previous key")
-            key = self.__key
             
         out = []
         with open(encripted_file, "rb") as f:
@@ -300,10 +279,6 @@ class SecKeys:
                         break
         return data_dict
 
-    def __salt_and_encript(self, string: str, key:bytes = None) -> tuple[bytes, bytes, bytes]:
-        if key is None:
-            key = self.__key.decode()
-        else:
-            self.__key = key
-        out = key[0] + string[0] + key[1] + string[1:-1] + key[-2] + string[-1] + key[-1]
-        return self.__AES_encript(out)
+    def __salt_and_encript(self, string: str, key) -> tuple[bytes, bytes, bytes]:
+        out = key.decode()[0] + string[0] + key.decode()[1] + string[1:-1] + key.decode()[-2] + string[-1] + key.decode()[-1]
+        return self.__AES_encript(out, key)
