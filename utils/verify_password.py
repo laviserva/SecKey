@@ -1,7 +1,6 @@
 # Verify and decript
 import tkinter as tk
 from tkinter import ttk, W, CENTER, StringVar
-from turtle import bgcolor
 from dec import EaD # Encript and Decript
 
 from PIL import Image, ImageTk
@@ -162,6 +161,9 @@ class verify_password(EaD):
     def Validation(self, filename: str) -> None:
         self.file = filename
         self.__create_windows()
+        self.win.destroy()
+        self.state = Verify_password_state.DESTROYED
+        
         
     def __load_password(self, key_entry: tk.Entry) -> None:
         self.__entry_value = key_entry.get().encode()
