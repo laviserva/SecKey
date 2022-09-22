@@ -1,7 +1,6 @@
 import tkinter as tk
-from tkinter import filedialog, ttk, W, CENTER, StringVar
+from tkinter import NW, filedialog, CENTER, W
 
-from PIL import ImageFont
 import os
 
 from dec import EaD # Encript and Decript
@@ -43,11 +42,11 @@ class start_app(EaD):
             self.win.destroy()
         self.state = start_app_state.CLOSED
         
-    def __on_enter(self, button: tk.Button, bg: str, fg: str) -> None:
+    def __on_enter_mouse(self, button: tk.Button, bg: str, fg: str) -> None:
         button["background"] = bg
         button["foreground"] = fg
     
-    def __on_leave(self, button: tk.Button, bg: str, fg: str) -> None:
+    def __on_leave_mouse(self, button: tk.Button, bg: str, fg: str) -> None:
         button["background"] = fg
         button["foreground"] = bg
     
@@ -74,25 +73,19 @@ class start_app(EaD):
         self.win.iconphoto(False, tk.PhotoImage(file=r"resources\sk.png"))
         #self.win.wm_attributes('-toolwindow', 'True') # Hide icon
         self.win.resizable(width=False, height=False)
-        
-        # Set the geometry of the window
         self.win.geometry(self.geometry)
-
-        # Create a frame widget
         frame=tk.Frame(self.win,
                        width=self.width,
                        height=self.height,
                        bg = self.bg_color)
         #frame.pack(fill = tk.X, padx=20, pady=20)
-        frame.grid(row=0, column=0, sticky="NW")
+        frame.grid(row=0, column=0, sticky=NW)
         #frame.config(bg = "#fcfcfc")
-
-        # Create a label widget
         Seckeys_label=tk.Label(self.win, text="SecKeys",
                        font=(self.font, self.font_size_h1),
                        fg = self.title_font_color,
                        bg = self.bg_color,
-                       anchor = "w"
+                       anchor = W
                        )
         Seckeys_label.place(relx=self.place_in_center, rely=self.place_starting, anchor=CENTER)
         
@@ -107,8 +100,8 @@ class start_app(EaD):
                                         activeforeground = self.bg_color,
                                         border = 0
                                         )
-        create_file_button.bind("<Enter>", lambda event: self.__on_enter(create_file_button,self.button_create_fg_color, self.bg_color))
-        create_file_button.bind("<Leave>", lambda event: self.__on_leave(create_file_button,self.button_create_fg_color, self.bg_color))
+        create_file_button.bind("<Enter>", lambda event: self.__on_enter_mouse(create_file_button,self.button_create_fg_color, self.bg_color))
+        create_file_button.bind("<Leave>", lambda event: self.__on_leave_mouse(create_file_button,self.button_create_fg_color, self.bg_color))
         create_file_button.place(relx=self.place_in_center, rely=0.5, anchor=CENTER)
         
         Load_key_button = tk.Button(self.win, text="Load File",
@@ -121,8 +114,8 @@ class start_app(EaD):
                                      activeforeground = self.bg_color,
                                      border = 0,
                                      command=self.__open_encrypted_file)
-        Load_key_button.bind("<Enter>", lambda event: self.__on_enter(Load_key_button,self.button_load_fg_color, self.bg_color))
-        Load_key_button.bind("<Leave>", lambda event: self.__on_leave(Load_key_button,self.button_load_fg_color, self.bg_color))
+        Load_key_button.bind("<Enter>", lambda event: self.__on_enter_mouse(Load_key_button,self.button_load_fg_color, self.bg_color))
+        Load_key_button.bind("<Leave>", lambda event: self.__on_leave_mouse(Load_key_button,self.button_load_fg_color, self.bg_color))
         Load_key_button.place(relx=self.place_in_center, rely=0.825, anchor=CENTER)
         
         self.win.protocol("WM_DELETE_WINDOW", self.__on_closing)
