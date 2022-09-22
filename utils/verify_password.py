@@ -2,8 +2,8 @@
 import tkinter as tk
 from tkinter import ttk, W, CENTER, StringVar
 from dec import EaD # Encript and Decript
+from img_utils import resize_image
 
-from PIL import Image, ImageTk
 from enum import Enum, auto
 
 class Verify_password_state(Enum):
@@ -41,6 +41,11 @@ class verify_password(EaD):
         self.__image = None
         self.__entry_value = None
         self.file = None
+    
+    def __on_closing(self) -> None:
+        if tk.messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.win.destroy()
+        self.state = Verify_password_state.DESTROYED
         
     def __on_enter(self, button: tk.Button, bg: str, fg: str) -> None:
         button["background"] = fg
@@ -50,11 +55,6 @@ class verify_password(EaD):
         button["background"] = bg
         button["foreground"] = fg
     
-    def __resize_image(self, img, width=14, height=14) -> ImageTk:
-        image = Image.open(img)
-        resize = image.resize((width, height))
-        return ImageTk.PhotoImage(resize)
-
     def __return_button(self) -> None:
         self.state = Verify_password_state.RETURN_TO_MAIN
         self.win.destroy()
@@ -109,7 +109,7 @@ class verify_password(EaD):
                              show=self.__show)
         key_entry.place(relx=0.56-0.08, rely=self.__place_starting+self.__place_step*3, anchor=CENTER)
         
-        self.__image = self.__resize_image(self.__show_password_image)
+        self.__image = resize_image(self.__show_password_image)
         show_pw_button = tk.Button(self.win,
                                     image=self.__image,
                                     width = 15,
@@ -146,14 +146,15 @@ class verify_password(EaD):
         return_button.place(relx=self.__place_in_center + 0.2, rely=self.__place_starting+self.__place_step*6, anchor=CENTER)
         return_button.bind("<Enter>", lambda event: self.__on_enter(return_button, self.bg_color, self.return_button_fg_color))
         return_button.bind("<Leave>", lambda event: self.__on_leave(return_button, self.bg_color, self.return_button_fg_color))
+        self.win.protocol("WM_DELETE_WINDOW", self.__on_closing)
         self.win.mainloop()
         
     def __show_password(self, key: tk.Entry, button: tk.Button) -> None:
         if self.__show == "*":
             self.__show = ""
-            self.__image = self.__resize_image(self.__hide_password_image)
+            self.__image = resize_image(self.__hide_password_image)
         elif self.__show == "":
-            self.__image = self.__resize_image(self.__show_password_image)
+            self.__image = resize_image(self.__show_password_image)
             self.__show = "*"
         button.config(image=self.__image)
         key["show"] = self.__show
@@ -161,9 +162,6 @@ class verify_password(EaD):
     def Validation(self, filename: str) -> None:
         self.file = filename
         self.__create_windows()
-        self.win.destroy()
-        self.state = Verify_password_state.DESTROYED
-        
         
     def __load_password(self, key_entry: tk.Entry) -> None:
         self.__entry_value = key_entry.get().encode()
