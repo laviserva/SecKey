@@ -1,10 +1,9 @@
 import os
 import tkinter as tk
 
-from PIL import Image
-from enum import Enum, auto
+from enum import Enum
 
-from img_utils import resize_image
+from img_utils import resize_image, from_array_to_img, from_img_to_array
 
 class data_window_state(Enum):
     pass
@@ -20,12 +19,13 @@ class data_window:
         self.buttons_height = 40
         
         self.__menu_bg = "#3a7ff6"
+        self.__menu_fg = "#aaaaaa"
         self.__resources_dir = r"resources"
-        self.__menu_image = os.path.join(self.__resources_dir, "menu.png")
-        self.__add_image = os.path.join(self.__resources_dir, "add.png")
-        self.__save_image = os.path.join(self.__resources_dir, "save.png")
-        self.__key_image = os.path.join(self.__resources_dir, "key.png")
-        self.__config_image = os.path.join(self.__resources_dir, "config.png")
+        self.__menu_image_path = os.path.join(self.__resources_dir, "menu.png")
+        self.__add_image_path = os.path.join(self.__resources_dir, "add.png")
+        self.__save_image_path = os.path.join(self.__resources_dir, "save.png")
+        self.__key_image_path = os.path.join(self.__resources_dir, "key.png")
+        self.__config_image_path = os.path.join(self.__resources_dir, "config.png")
     
     def printo(self):
         print("button")
@@ -48,17 +48,27 @@ class data_window:
         button.place(relx=relx, rely=rely)
         return button
     
-    def __on_button(self, button: tk.Button, bg: str, fg: str) -> None:
-        button.bind("<Enter>", lambda event: self.__on_enter_mouse(button, bg, fg))
-        button.bind("<Leave>", lambda event: self.__on_leave_mouse(button, bg, fg))
+    def __from_hexa_to_rgb(self, hexa: str) -> tuple:
+        hexa = hexa[1:]
+        rgb = list(int(hexa[i:i+2], 16) for i in (0, 2, 4))
+        rgb = (*rgb, 255)
+        return rgb
     
-    def __on_enter_mouse(self, button: tk.Button, bg: str, fg: str) -> None:
-        button["background"] = bg
-        button["foreground"] = fg
+    def __on_button(self, button: tk.Button, img, bg: str, fg: str) -> None:
+        button.bind("<Enter>", lambda event: self.__on_enter_mouse(button, img, bg, fg))
+        button.bind("<Leave>", lambda event: self.__on_leave_mouse(button, img, bg, fg))
     
-    def __on_leave_mouse(self, button: tk.Button, bg: str, fg: str) -> None:
+    def __on_enter_mouse(self, button: tk.Button, img, bg: str, fg: str) -> None:
+        img_array = from_img_to_array(img)
+        img_array[:,:,3 != 0] = (255, 255, 255, 255)
         button["background"] = fg
         button["foreground"] = bg
+    
+    def __on_leave_mouse(self, button: tk.Button, img, bg: str, fg: str) -> None:
+        img_array = from_img_to_array(img)
+        img_array[:,:,3 != 0] = (255, 255, 255, 255)
+        button["background"] = bg
+        button["foreground"] = fg
     
     def __create_menu(self) -> None:
         self.menu = tk.Frame(self.win, width=self.menu_width, height=self.menu_weight ,background=self.__menu_bg)
@@ -75,18 +85,18 @@ class data_window:
         config_button = self.__create_buttons(self.menu, "config", self.__config_image, self.printo, 0, 0.5)
         config_button.pack()
         
-        self.__on_button(menu_button, "#aaaaaa", "#bb934a")
-        self.__on_button(add_button, "#aaaaaa", "#bb934a")
-        self.__on_button(save_button, "#aaaaaa", "#bb934a")
-        self.__on_button(key_button, "#aaaaaa", "#bb934a")
-        self.__on_button(config_button, "#aaaaaa", "#bb934a")
+        self.__on_button(button=menu_button, img=self.__menu_image_path, bg = self.__menu_bg, fg= self.__menu_fg)
+        self.__on_button(button=add_button, img=self.__add_image_path, bg = self.__menu_bg, fg= self.__menu_fg)
+        self.__on_button(button=save_button, img=self.__save_image_path, bg = self.__menu_bg, fg= self.__menu_fg)
+        self.__on_button(button=key_button, img=self.__key_image_path, bg = self.__menu_bg, fg= self.__menu_fg)
+        self.__on_button(button=config_button, img=self.__config_image_path, bg = self.__menu_bg, fg= self.__menu_fg)
         
     def __load_images(self):
-        self.__menu_image = resize_image(self.__menu_image, self.buttons_width, self.buttons_height)
-        self.__add_image = resize_image(self.__add_image, self.buttons_width, self.buttons_height)
-        self.__save_image = resize_image(self.__save_image, self.buttons_width, self.buttons_height)
-        self.__key_image = resize_image(self.__key_image, self.buttons_width, self.buttons_height)
-        self.__config_image = resize_image(self.__config_image, self.buttons_width, self.buttons_height)
+        self.__menu_image = resize_image(self.__menu_image_path, self.buttons_width, self.buttons_height)
+        self.__add_image = resize_image(self.__add_image_path, self.buttons_width, self.buttons_height)
+        self.__save_image = resize_image(self.__save_image_path, self.buttons_width, self.buttons_height)
+        self.__key_image = resize_image(self.__key_image_path, self.buttons_width, self.buttons_height)
+        self.__config_image = resize_image(self.__config_image_path, self.buttons_width, self.buttons_height)
     
     def window(self):
         self.win=tk.Tk()
