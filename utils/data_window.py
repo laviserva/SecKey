@@ -1,12 +1,20 @@
+from ast import Add
 import os
 import tkinter as tk
 
-from enum import Enum
+from enum import Enum, auto
 
 from img_utils import resize_image, from_array_to_img, from_img_to_array
 
 class data_window_state(Enum):
     pass
+
+class buttons_state(Enum):
+    MENU = auto()
+    ADD = auto()
+    SAVE = auto()
+    KEY = auto()
+    CONFIG = auto()
 
 class data_window:
     def __init__(self) -> None:
@@ -54,21 +62,37 @@ class data_window:
         rgb = (*rgb, 255)
         return rgb
     
-    def __on_button(self, button: tk.Button, img, bg: str, fg: str) -> None:
-        button.bind("<Enter>", lambda event: self.__on_enter_mouse(button, img, bg, fg))
-        button.bind("<Leave>", lambda event: self.__on_leave_mouse(button, img, bg, fg))
+    def __on_button(self, button: tk.Button, img, bg: str, fg: str, state: buttons_state) -> None:
+        button.bind("<Enter>", lambda event: self.__on_enter_mouse(button, img, bg, fg, state))
+        button.bind("<Leave>", lambda event: self.__on_leave_mouse(button, img, bg, fg, state))
     
-    def __on_enter_mouse(self, button: tk.Button, img, bg: str, fg: str) -> None:
+    def __on_enter_mouse(self, button: tk.Button, img, bg: str, fg: str, state: buttons_state) -> None:
         img_array = from_img_to_array(img)
-        img_array[:,:,3 != 0] = (255, 255, 255, 255)
+        img_array[:,:,3 != 0] = (0, 0, 0, 255)
+        self.__on_update_image(img_array, state)
         button["background"] = fg
         button["foreground"] = bg
     
-    def __on_leave_mouse(self, button: tk.Button, img, bg: str, fg: str) -> None:
+    def __on_leave_mouse(self, button: tk.Button, img, bg: str, fg: str, state: buttons_state) -> None:
         img_array = from_img_to_array(img)
         img_array[:,:,3 != 0] = (255, 255, 255, 255)
+        self.__on_update_image(img_array, state)
         button["background"] = bg
         button["foreground"] = fg
+        button.config(image = self.__menu_image)
+    
+    def __on_update_image(self, img, state: buttons_state):
+        if state == buttons_state.MENU:
+            self.__menu_image = from_array_to_img(img)
+            print(self.__menu_image)
+        elif state == buttons_state.ADD:
+            self.__add_image = from_array_to_img(img)
+        elif state == buttons_state.SAVE:
+            self.__save_image = from_array_to_img(img)
+        elif state == buttons_state.KEY:
+            self.__key_image = from_array_to_img(img)
+        elif state == buttons_state.CONFIG:
+            self.__config_image = from_array_to_img(img)
     
     def __create_menu(self) -> None:
         self.menu = tk.Frame(self.win, width=self.menu_width, height=self.menu_weight ,background=self.__menu_bg)
@@ -76,6 +100,7 @@ class data_window:
         
         menu_button = self.__create_buttons(self.menu, "menu", self.__menu_image, self.printo, 0, 0.1)
         menu_button.pack()
+        menu_button.config(image=self.__menu_image)
         add_button = self.__create_buttons(self.menu, "add", self.__add_image, self.printo, 0, 0.2)
         add_button.pack()
         save_button = self.__create_buttons(self.menu, "save", self.__save_image, self.printo, 0, 0.3)
@@ -85,11 +110,11 @@ class data_window:
         config_button = self.__create_buttons(self.menu, "config", self.__config_image, self.printo, 0, 0.5)
         config_button.pack()
         
-        self.__on_button(button=menu_button, img=self.__menu_image_path, bg = self.__menu_bg, fg= self.__menu_fg)
-        self.__on_button(button=add_button, img=self.__add_image_path, bg = self.__menu_bg, fg= self.__menu_fg)
-        self.__on_button(button=save_button, img=self.__save_image_path, bg = self.__menu_bg, fg= self.__menu_fg)
-        self.__on_button(button=key_button, img=self.__key_image_path, bg = self.__menu_bg, fg= self.__menu_fg)
-        self.__on_button(button=config_button, img=self.__config_image_path, bg = self.__menu_bg, fg= self.__menu_fg)
+        self.__on_button(button=menu_button, img=self.__menu_image_path, bg = self.__menu_bg, fg= self.__menu_fg, state= buttons_state.MENU)
+        self.__on_button(button=add_button, img=self.__add_image_path, bg = self.__menu_bg, fg= self.__menu_fg, state= buttons_state.ADD)
+        self.__on_button(button=save_button, img=self.__save_image_path, bg = self.__menu_bg, fg= self.__menu_fg, state= buttons_state.SAVE)
+        self.__on_button(button=key_button, img=self.__key_image_path, bg = self.__menu_bg, fg= self.__menu_fg, state= buttons_state.KEY)
+        self.__on_button(button=config_button, img=self.__config_image_path, bg = self.__menu_bg, fg= self.__menu_fg, state= buttons_state.CONFIG)
         
     def __load_images(self):
         self.__menu_image = resize_image(self.__menu_image_path, self.buttons_width, self.buttons_height)
