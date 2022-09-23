@@ -9,3 +9,6 @@ def resize_image(img: str, width=14, height=14) -> ImageTk:
 def from_array_to_img(array: np.ndarray):
         img = Image.fromarray(array)
         return ImageTk.PhotoImage(image = img)
+    
+def from_img_to_array(img) -> np.ndarray:
+        return np.array(Image.open(img))
