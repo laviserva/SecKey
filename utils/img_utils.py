@@ -6,13 +6,13 @@ def resize_image(img: str, width=14, height=14) -> ImageTk:
         resize = image.resize((width, height))
         return ImageTk.PhotoImage(resize)
 
-def from_array_to_img(array: np.ndarray):
+def from_array_to_img(array: np.ndarray) -> ImageTk:
         return ImageTk.PhotoImage(Image.fromarray(array))
     
 def from_img_to_array(img) -> np.ndarray:
         return np.array(Image.open(img))
 
-def change_img_colors(path:str, fg: list, bg:str = None):
+def change_img_colors(path:str, fg: list, bg:str = None) -> ImageTk:
     array = from_img_to_array(path)
     for i in range(array.shape[0]):
         for j in range(array.shape[1]):
