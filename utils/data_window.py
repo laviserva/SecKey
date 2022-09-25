@@ -70,21 +70,20 @@ class data_window:
         img_array = from_img_to_array(img)
         img_array[:,:,3 != 0] = (0, 0, 0, 255)
         self.__on_update_image(img_array, state)
-        button["background"] = fg
-        button["foreground"] = bg
+        #button["background"] = fg
+        #button["foreground"] = bg
     
     def __on_leave_mouse(self, button: tk.Button, img, bg: str, fg: str, state: buttons_state) -> None:
         img_array = from_img_to_array(img)
-        img_array[:,:,3 != 0] = (255, 255, 255, 255)
+        img_array[:,:,4 == 255] = (255, 0, 0, 255) # review how does work the image
         self.__on_update_image(img_array, state)
-        button["background"] = bg
-        button["foreground"] = fg
+        #button["background"] = bg
+        #button["foreground"] = fg
         button.config(image = self.__menu_image)
     
     def __on_update_image(self, img, state: buttons_state):
         if state == buttons_state.MENU:
             self.__menu_image = from_array_to_img(img)
-            print(self.__menu_image)
         elif state == buttons_state.ADD:
             self.__add_image = from_array_to_img(img)
         elif state == buttons_state.SAVE:
