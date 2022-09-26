@@ -1,10 +1,9 @@
-from ast import Add
 import os
 import tkinter as tk
 
 from enum import Enum, auto
 
-from img_utils import resize_image, from_array_to_img, from_img_to_array
+from img_utils import resize_image, change_img_colors
 
 class data_window_state(Enum):
     pass
@@ -24,10 +23,13 @@ class data_window:
         self.menu_weight = 400
         self.menu_buttons_step = self.height // 6
         self.buttons_width = 40
-        self.buttons_height = 40
+        self.buttons_height = self.buttons_width
         
-        self.__menu_bg = "#3a7ff6"
-        self.__menu_fg = "#aaaaaa"
+        self.__default_bg_color = "#3a7ff6"         # Default color bg (permanent)
+        self.__default_fg_color = "#000000"         # Default color fg (permanent)
+        self.__highlighted_fg_color = "#ff0000"    # highlighted bg color when mouse on button (temporal)
+        self.__highlighted_bg_color = "#0000ff"    # highlighted bg color when mouse on button (temporal)
+        
         self.__resources_dir = r"resources"
         self.__menu_image_path = os.path.join(self.__resources_dir, "menu.png")
         self.__add_image_path = os.path.join(self.__resources_dir, "add.png")
@@ -44,57 +46,58 @@ class data_window:
                                 width=self.buttons_width,
                                 height=self.buttons_height,
                                 border=0,
-                                highlightbackground="#000000",
-                                highlightcolor="#000000",
                                 highlightthickness=3,
-                                activebackground="#aaaaaa",
-                                activeforeground="#000000",
-                                bg = self.__menu_bg,
+                                activebackground=self.__highlighted_bg_color,
+                                activeforeground=self.__highlighted_fg_color,
+                                bg = self.__default_bg_color,
                                 image=image,
                                 command = command
                                 )
         button.place(relx=relx, rely=rely)
         return button
     
-    def __from_hexa_to_rgb(self, hexa: str) -> tuple:
-        hexa = hexa[1:]
-        rgb = list(int(hexa[i:i+2], 16) for i in (0, 2, 4))
-        rgb = (*rgb, 255)
-        return rgb
+    def __on_button(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color: str = None) -> None:
+        button.bind("<Enter>", lambda event: self.__on_enter_mouse(button, state, primary_color, secundary_color))
+        button.bind("<Leave>", lambda event: self.__on_leave_mouse(button, state, self.__default_fg_color))
     
-    def __on_button(self, button: tk.Button, img, bg: str, fg: str, state: buttons_state) -> None:
-        button.bind("<Enter>", lambda event: self.__on_enter_mouse(button, img, bg, fg, state))
-        button.bind("<Leave>", lambda event: self.__on_leave_mouse(button, img, bg, fg, state))
-    
-    def __on_enter_mouse(self, button: tk.Button, img, bg: str, fg: str, state: buttons_state) -> None:
-        img_array = from_img_to_array(img)
-        img_array[:,:,3 != 0] = (0, 0, 0, 255)
-        self.__on_update_image(img_array, state)
-        #button["background"] = fg
-        #button["foreground"] = bg
-    
-    def __on_leave_mouse(self, button: tk.Button, img, bg: str, fg: str, state: buttons_state) -> None:
-        img_array = from_img_to_array(img)
-        img_array[:,:,4 == 255] = (255, 0, 0, 255) # review how does work the image
-        self.__on_update_image(img_array, state)
-        #button["background"] = bg
-        #button["foreground"] = fg
-        button.config(image = self.__menu_image)
-    
-    def __on_update_image(self, img, state: buttons_state):
+    def __on_enter_mouse(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color: str = None) -> None:
+        if secundary_color is None:
+            secundary_color = self.__default_bg_color
         if state == buttons_state.MENU:
-            self.__menu_image = from_array_to_img(img)
+            self.__menu_image = change_img_colors(self.__menu_image_path, primary_color, secundary_color, self.buttons_width, self.buttons_height)
+            button.config(image = self.__menu_image)
         elif state == buttons_state.ADD:
-            self.__add_image = from_array_to_img(img)
+            self.__add_image = change_img_colors(self.__add_image_path, primary_color, secundary_color, self.buttons_width, self.buttons_height)
+            button.config(image = self.__add_image)
         elif state == buttons_state.SAVE:
-            self.__save_image = from_array_to_img(img)
+            self.__save_image = change_img_colors(self.__save_image_path, primary_color, secundary_color, self.buttons_width, self.buttons_height)
+            button.config(image = self.__save_image)
         elif state == buttons_state.KEY:
-            self.__key_image = from_array_to_img(img)
+            self.__key_image = change_img_colors(self.__key_image_path, primary_color, secundary_color, self.buttons_width, self.buttons_height)
+            button.config(image = self.__key_image)
         elif state == buttons_state.CONFIG:
-            self.__config_image = from_array_to_img(img)
+            self.__config_image = change_img_colors(self.__config_image_path, primary_color, secundary_color, self.buttons_width, self.buttons_height)
+            button.config(image = self.__config_image)
+    
+    def __on_leave_mouse(self, button: tk.Button, state: buttons_state, primary_color: str) -> None:
+        if state == buttons_state.MENU:
+            self.__menu_image = change_img_colors(self.__menu_image_path, primary_color, self.__default_bg_color, self.buttons_width, self.buttons_height)
+            button.config(image = self.__menu_image)
+        elif state == buttons_state.ADD:
+            self.__add_image = change_img_colors(self.__add_image_path, primary_color, self.__default_bg_color, self.buttons_width, self.buttons_height)
+            button.config(image = self.__add_image)
+        elif state == buttons_state.SAVE:
+            self.__save_image = change_img_colors(self.__save_image_path, primary_color, self.__default_bg_color, self.buttons_width, self.buttons_height)
+            button.config(image = self.__save_image)
+        elif state == buttons_state.KEY:
+            self.__key_image = change_img_colors(self.__key_image_path, primary_color, self.__default_bg_color, self.buttons_width, self.buttons_height)
+            button.config(image = self.__key_image)
+        elif state == buttons_state.CONFIG:
+            self.__config_image = change_img_colors(self.__config_image_path, primary_color, self.__default_bg_color, self.buttons_width, self.buttons_height)
+            button.config(image = self.__config_image)
     
     def __create_menu(self) -> None:
-        self.menu = tk.Frame(self.win, width=self.menu_width, height=self.menu_weight ,background=self.__menu_bg)
+        self.menu = tk.Frame(self.win, width=self.menu_width, height=self.menu_weight ,background=self.__default_bg_color)
         self.menu.pack(side = "left",  fill = tk.BOTH)
         
         menu_button = self.__create_buttons(self.menu, "menu", self.__menu_image, self.printo, 0, 0.1)
@@ -109,18 +112,39 @@ class data_window:
         config_button = self.__create_buttons(self.menu, "config", self.__config_image, self.printo, 0, 0.5)
         config_button.pack()
         
-        self.__on_button(button=menu_button, img=self.__menu_image_path, bg = self.__menu_bg, fg= self.__menu_fg, state= buttons_state.MENU)
-        self.__on_button(button=add_button, img=self.__add_image_path, bg = self.__menu_bg, fg= self.__menu_fg, state= buttons_state.ADD)
-        self.__on_button(button=save_button, img=self.__save_image_path, bg = self.__menu_bg, fg= self.__menu_fg, state= buttons_state.SAVE)
-        self.__on_button(button=key_button, img=self.__key_image_path, bg = self.__menu_bg, fg= self.__menu_fg, state= buttons_state.KEY)
-        self.__on_button(button=config_button, img=self.__config_image_path, bg = self.__menu_bg, fg= self.__menu_fg, state= buttons_state.CONFIG)
+        self.__on_button(button=menu_button, primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state= buttons_state.MENU)
+        self.__on_button(button=add_button, primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state= buttons_state.ADD)
+        self.__on_button(button=save_button, primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state= buttons_state.SAVE)
+        self.__on_button(button=key_button, primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state= buttons_state.KEY)
+        self.__on_button(button=config_button, primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state= buttons_state.CONFIG)
         
     def __load_images(self):
-        self.__menu_image = resize_image(self.__menu_image_path, self.buttons_width, self.buttons_height)
-        self.__add_image = resize_image(self.__add_image_path, self.buttons_width, self.buttons_height)
-        self.__save_image = resize_image(self.__save_image_path, self.buttons_width, self.buttons_height)
-        self.__key_image = resize_image(self.__key_image_path, self.buttons_width, self.buttons_height)
-        self.__config_image = resize_image(self.__config_image_path, self.buttons_width, self.buttons_height)
+        self.__menu_image = resize_image(self.__menu_image_path, width = self.buttons_width, height=self.buttons_height)
+        self.__add_image = resize_image(self.__add_image_path, width = self.buttons_width, height=self.buttons_height)
+        self.__save_image = resize_image(self.__save_image_path, width = self.buttons_width, height=self.buttons_height)
+        self.__key_image = resize_image(self.__key_image_path, width = self.buttons_width, height=self.buttons_height)
+        self.__config_image = resize_image(self.__config_image_path, width = self.buttons_width, height=self.buttons_height)
+    
+    
+    ################################################# Develoap
+    def __double_click(self, button: tk.Button, dicto):
+        text =f"""
+        Site 01
+        Users: {len(dicto["site 01"])}
+        
+        1:
+        User: {dicto["site 01"][1]["user"]}
+        Password: {dicto["site 01"][1]["password"]}
+        """
+        button.config(text=text)
+        
+    def frame_example(self, dicto: dict):
+        label_data = dicto["site 01"]
+        button_ejemplo = tk.Button(self.win,text=label_data, border=1, relief=tk.SUNKEN, anchor="w", justify="left")
+        button_ejemplo.pack(fill = "both")
+        button_ejemplo.bind('<Double-Button-1>', lambda event: self.__double_click(button_ejemplo, dicto))
+        
+    ################################################################
     
     def window(self):
         self.win=tk.Tk()
@@ -137,10 +161,19 @@ class data_window:
         self.win.geometry(self.geometry)
         self.__load_images()
         self.__create_menu()
-        
+        self.frame_example(example_dict)
         self.win.mainloop()
 
-import os
-print(os.path.exists(r"resources"))
 A = data_window()
+example_dict = { # Global variable fix function's local variables frame_example when finish
+                'site 01':{
+                    1:{'user': 'user1', 'password': 'pass1', 'token': 'token1'},
+                    2: {'user': 'user3', 'password': 'pass3', 'token': 'token3'}},
+                'site 02':{
+                    1: {'user': 'user2', 'password': 'pass2'}},
+                'site 04':{
+                    1: {'user': 'user4', 'password': 'pass4'}}, 
+                'site 10': {
+                    1: {'user': 'user5', 'password': 'pass5'}}}
+
 A.window()
