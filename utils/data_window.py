@@ -127,23 +127,47 @@ class data_window:
     
     
     ################################################# Develoap
-    def __double_click(self, button: tk.Button, dicto):
-        text =f"""
-        Site 01
-        Users: {len(dicto["site 01"])}
+    def __button_index_helper(self, i:int):
+        self.Buttons_win[i][0].bind('<Double-Button-1>', lambda event: self.__double_click(i))
+    def __double_click(self, i:int):
+        key = self.Buttons_win[i][1]
+        new_text = f""""""
+        for j in range(len(self.__dicto[key])):
+            num_users = j + 1
+            user = self.__dicto[key][num_users]["user"]
+            password = self.__dicto[key][num_users]["password"]
+            new_text += f"""
+            User: {user}
+            Password: {password}
+            """
+        text = f"""
+            Site: {key}
+            {new_text}
+            """
+        self.Buttons_win[i][0].config(text=text)
         
-        1:
-        User: {dicto["site 01"][1]["user"]}
-        Password: {dicto["site 01"][1]["password"]}
-        """
-        button.config(text=text)
-        
-    def frame_example(self, dicto: dict):
-        label_data = dicto["site 01"]
-        button_ejemplo = tk.Button(self.win,text=label_data, border=1, relief=tk.SUNKEN, anchor="w", justify="left")
-        button_ejemplo.pack(fill = "both")
-        button_ejemplo.bind('<Double-Button-1>', lambda event: self.__double_click(button_ejemplo, dicto))
-        
+    def default_segment_for_site(self, dict):
+        self.__dicto = dict
+        self.Buttons_win = []
+        for key in self.__dicto:
+            site = key
+            
+            text = f"""
+            Site: {site}
+            # Users: {len(self.__dicto[key])}
+            """
+            button_site = tk.Button(self.win,text=text, border=0, relief=tk.SUNKEN, anchor="w", justify="left")
+            button_site.pack(fill = "both")
+            
+            self.Buttons_win.append([
+                button_site,
+                key,
+                text
+                ]
+            )
+        for i in range(len(self.Buttons_win)):
+            self.Buttons_win[i][0].config(command = lambda i=i: self.__button_index_helper(i))
+
     ################################################################
     
     def window(self):
@@ -161,11 +185,11 @@ class data_window:
         self.win.geometry(self.geometry)
         self.__load_images()
         self.__create_menu()
-        self.frame_example(example_dict)
+        self.default_segment_for_site(example_dict)
         self.win.mainloop()
 
 A = data_window()
-example_dict = { # Global variable fix function's local variables frame_example when finish
+example_dict = { # Global variable fix function's local variables default_segment_for_site when finish
                 'site 01':{
                     1:{'user': 'user1', 'password': 'pass1', 'token': 'token1'},
                     2: {'user': 'user3', 'password': 'pass3', 'token': 'token3'}},
