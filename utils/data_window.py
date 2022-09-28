@@ -1,5 +1,6 @@
 import os
 import tkinter as tk
+from tkinter import ttk
 
 from enum import Enum, auto
 
@@ -97,8 +98,8 @@ class data_window:
             button.config(image = self.__config_image)
     
     def __create_menu(self) -> None:
-        self.menu = tk.Frame(self.win, width=self.menu_width, height=self.menu_weight ,background=self.__default_bg_color)
-        self.menu.pack(side = "left",  fill = tk.BOTH)
+        self.menu = tk.Frame(self.root, width=self.menu_width, height=self.menu_weight ,background=self.__default_bg_color)
+        self.menu.pack(side=tk.LEFT ,fill=tk.BOTH, expand=1)
         
         menu_button = self.__create_buttons(self.menu, "menu", self.__menu_image, self.printo, 0, 0.1)
         menu_button.pack()
@@ -170,23 +171,41 @@ class data_window:
 
     ################################################################
     
+    def __set_scrollbar(self):
+        self.main = tk.Frame(self.root)
+        self.main.pack(side = tk.RIGHT, fill=tk.BOTH)
+        
+        self.canvas = tk.Canvas(self.main)
+        my_scrollbar = ttk.Scrollbar(self.main, orient = tk.VERTICAL, command = self.canvas.yview)
+        my_scrollbar.pack(side = tk.RIGHT, fill = tk.Y)
+        self.canvas.pack(side = tk.LEFT, fill=tk.BOTH)
+
+        self.canvas.configure(yscrollcommand=my_scrollbar.set)
+        self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        
+        self.win = tk.Frame(self.canvas)
+        #self.win.pack(side = tk.LEFT)
+        self.canvas.create_window((self.buttons_width,0), window=self.win, anchor = "nw")
+    
     def window(self):
-        self.win=tk.Tk()
-        screen_width  = self.win.winfo_screenwidth()
-        screen_height = self.win.winfo_screenheight()
+        self.root=tk.Tk()
+        screen_width  = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
         x_coordinates = screen_width//2 - self.width//2
         y_coordinates = screen_height//2 - self.height//2
-        self.win.title("SecKey")
+        self.root.title("SecKey")
         self.geometry = f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}"
-        self.win.iconphoto(False, tk.PhotoImage(file=os.path.join(self.__resources_dir,"sk.png")))
-        #self.win.wm_attributes('-toolwindow', 'True') # Hide icon
-        self.win.resizable(width=False, height=False)
+        self.root.iconphoto(False, tk.PhotoImage(file=os.path.join(self.__resources_dir,"sk.png")))
+        #self.root.wm_attributes('-toolwindow', 'True') # Hide icon
+        #self.root.resizable(width=False, height=False)
         # Set the geometry of the window
-        self.win.geometry(self.geometry)
+        self.root.geometry(self.geometry)
+
         self.__load_images()
         self.__create_menu()
+        self.__set_scrollbar()
         self.default_segment_for_site(example_dict)
-        self.win.mainloop()
+        self.root.mainloop()
 
 A = data_window()
 example_dict = { # Global variable fix function's local variables default_segment_for_site when finish
