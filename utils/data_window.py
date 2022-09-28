@@ -126,8 +126,6 @@ class data_window:
         self.__key_image = resize_image(self.__key_image_path, width = self.buttons_width, height=self.buttons_height)
         self.__config_image = resize_image(self.__config_image_path, width = self.buttons_width, height=self.buttons_height)
     
-    
-    ################################################# Develoap
     def __button_index_helper(self, i:int):
         self.Buttons_win[i][0].bind('<Double-Button-1>', lambda event: self.__double_click(i))
     def __double_click(self, i:int):
@@ -157,7 +155,7 @@ class data_window:
             Site: {site}
             # Users: {len(self.__dicto[key])}
             """
-            button_site = tk.Button(self.win,text=text, border=0, relief=tk.SUNKEN, anchor="w", justify="left")
+            button_site = tk.Button(self.win,text=text, border=0, relief=tk.SUNKEN, anchor="w", justify="left") ########### Fix this
             button_site.pack(fill = "both")
             
             self.Buttons_win.append([
@@ -168,8 +166,6 @@ class data_window:
             )
         for i in range(len(self.Buttons_win)):
             self.Buttons_win[i][0].config(command = lambda i=i: self.__button_index_helper(i))
-
-    ################################################################
     
     def __set_scrollbar(self):
         self.main = tk.Frame(self.root)
