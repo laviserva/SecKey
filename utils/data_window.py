@@ -101,7 +101,6 @@ class data_window:
     def __create_menu(self, window: tk.Frame) -> None:
         menu_button = self.__create_buttons(window, "menu", self.__menu_image, self.printo, 0, 0.1)
         menu_button.pack()
-        menu_button.config(image=self.__menu_image)
         add_button = self.__create_buttons(window, "add", self.__add_image, self.printo, 0, 0.2)
         add_button.pack()
         save_button = self.__create_buttons(window, "save", self.__save_image, self.printo, 0, 0.3)
@@ -124,60 +123,55 @@ class data_window:
         self.__key_image = resize_image(self.__key_image_path, width = self.buttons_width, height=self.buttons_height)
         self.__config_image = resize_image(self.__config_image_path, width = self.buttons_width, height=self.buttons_height)
     
-    def __button_index_helper(self, i:int) -> None:
-        self.Buttons_win[i][0].bind('<Double-Button-1>', lambda event: self.__double_click(i))
+    def __button_index_helper_first_doubcl(self, i:int, j:int) -> None:
+        self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__double_click_first_doubcl(i))
         
-    def __double_click(self, i:int) -> None:
+    def __double_click_first_doubcl(self, i:int) -> None:
         key = self.Buttons_win[i][1]
+        print(self.Buttons_win[i])
+        #self.Buttons_win[i][0][1].destroy()
+        grid_row_cont = self.Buttons_win[i][2][0] + 1
+        border = 0
+        for num_users in range(1, len(self.__dicto[key]) + 1):
+            user = self.__dicto[key][num_users]["user"]
+            user = f"User: {user}"
+            password = self.__dicto[key][num_users]["password"]
+            password = len(password)*"*"
+            password = f"Password: {password}"
+            #text += f"User: {user}\nPassword: {password}\n"
+            user_button = tk.Button(self.win,text=user, border=border, relief=tk.SUNKEN, anchor="nw", justify="left")
+            user_button.grid(row = grid_row_cont)
+            password_button = tk.Button(self.win,text=password, border=border, relief=tk.SUNKEN, anchor="nw", justify="left")
+            password_button.grid(row = grid_row_cont + 1)
+            grid_row_cont += 2
         
-        ####################### text is for update buttons when double click
-        if self.Buttons_win[i][2][0] == False and self.Buttons_win[i][2][2] != "":
-            text = self.Buttons_win[i][2][2]
-            self.Buttons_win[i][2][0] = True
-        elif self.Buttons_win[i][2][0] == True and self.Buttons_win[i][2][2] != "":
-            text = self.Buttons_win[i][2][1]
-            self.Buttons_win[i][2][0] = False
-        elif self.Buttons_win[i][2][0] == False and self.Buttons_win[i][2][2] == "":
-            ################### 
-            new_text = f""""""
-            for j in range(len(self.__dicto[key])):
-                num_users = j + 1
-                user = self.__dicto[key][num_users]["user"]
-                password = self.__dicto[key][num_users]["password"]
-                new_text += f"""
-                User: {user}
-                Password: {password}
-                """
-            text = f"""
-                Site: {key}
-                {new_text}
-                """
-            self.Buttons_win[i][2][2] = text
-            self.Buttons_win[i][2][0] = True
-        self.Buttons_win[i][0].config(text=text)
-        
-    def __update_data_to_screen(self, dict: dict) -> None:
+    def __default_data_to_screen(self, dict: dict) -> None:
         self.__dicto = dict
         self.Buttons_win = []
+        border = 0
+        grid_cont = 0
         for key in self.__dicto:
-            site = key
+            site = f"\n{key}"
+            num_users = f"# Users: {len(self.__dicto[key])}"
             
-            text = f"""
-            Site: {site}
-            # Users: {len(self.__dicto[key])}
-            """
+            next_grid_cont = grid_cont + len(self.__dicto[key])*2
             
-            button_site = tk.Button(self.win,text=text, border=0, relief=tk.SUNKEN, anchor="w", justify="left") ########### Fix this
-            button_site.pack(fill = "both")
-            
+            Label_site = tk.Button(self.win,text=site, border=border, relief=tk.SUNKEN, anchor="center", justify="center", font=30)
+            Label_site.grid(row = grid_cont, column = 0)
+            button_site = tk.Button(self.win,text=num_users, border=border, relief=tk.SUNKEN, anchor="center", justify="left")
+            button_site.grid(row = next_grid_cont, column = 0)
+
             self.Buttons_win.append([
-                button_site,
+                [Label_site, button_site],
                 key,
-                [False, text, ""] # what text is shown, default text, new text.
+                [grid_cont, next_grid_cont] # grid of Site, Grid of last password before site's grid
                 ]
             )
+            grid_cont = 1 + next_grid_cont
+            
         for i in range(len(self.Buttons_win)):
-            self.Buttons_win[i][0].config(command = lambda i=i: self.__button_index_helper(i))
+            for j in range(len(self.Buttons_win[i][0])):
+                self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j))
         
     def __update_scrollbar(self, event) -> None:
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -185,17 +179,16 @@ class data_window:
     def __set_scrollbar(self, window: tk.Frame) -> None:
         self.main = tk.Frame(window)
         self.main.pack(side = tk.RIGHT, fill=tk.BOTH)
-        
         self.canvas = tk.Canvas(self.main)
         my_scrollbar = ttk.Scrollbar(self.main, orient = tk.VERTICAL, command = self.canvas.yview)
-        my_scrollbar.pack(side = tk.RIGHT, fill = tk.Y)
+        my_scrollbar.pack(side = tk.RIGHT, fill = tk.Y, anchor="e")
+        
         self.canvas.pack(side = tk.LEFT, fill=tk.BOTH)
-
         self.canvas.configure(yscrollcommand=my_scrollbar.set)
         self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         
         self.win = tk.Frame(self.canvas)
-        #self.win.pack(side = tk.LEFT)
+        #self.canvas.create_window((0,0), window=self.win, anchor = "center")
         self.canvas.create_window((self.buttons_width,0), window=self.win, anchor = "nw")
     
     def window(self) -> None:
@@ -219,12 +212,12 @@ class data_window:
         self.__load_images()
         self.__create_menu(self.menu)
         self.__set_scrollbar(self.root)
-        self.__update_data_to_screen(example_dict)
+        self.__default_data_to_screen(example_dict)
         self.win.bind("<Configure>", self.__update_scrollbar)
         self.root.mainloop()
 
 A = data_window()
-example_dict = { # Global variable fix function's local variables __update_data_to_screen when finish
+example_dict = { # Global variable fix function's local variables __default_data_to_screen when finish
                 'site 01':{
                     1:{'user': 'user1', 'password': 'pass1', 'token': 'token1'},
                     2: {'user': 'user3', 'password': 'pass3', 'token': 'token3'}},
