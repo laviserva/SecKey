@@ -8,6 +8,7 @@ from typing import Callable
 from img_utils import resize_image, change_img_colors
 
 class gui_state(Enum):
+    CLOSE = auto
     DEFAULT = auto()
     USER_PASS_CENSURED = auto()
     USER_PASS_UNCENSURED = auto()
@@ -28,6 +29,7 @@ class data_window:
         self.menu_buttons_step: int = self.height // 6
         self.buttons_width: int = 40
         self.buttons_height: int = self.buttons_width
+        self.border: int = 1
         
         self.__default_bg_color: str = "#3a7ff6"         # Default color bg (permanent)
         self.__default_fg_color: str = "#000000"         # Default color fg (permanent)
@@ -49,7 +51,7 @@ class data_window:
                                 text = text,
                                 width=self.buttons_width,
                                 height=self.buttons_height,
-                                border=0,
+                                border=self.border,
                                 highlightthickness=3,
                                 activebackground=self.__highlighted_bg_color,
                                 activeforeground=self.__highlighted_fg_color,
@@ -128,22 +130,33 @@ class data_window:
         self.__key_image = resize_image(self.__key_image_path, width = self.buttons_width, height=self.buttons_height)
         self.__config_image = resize_image(self.__config_image_path, width = self.buttons_width, height=self.buttons_height)
     
-    def __button_index_helper_first_doubcl(self, i:int, j:int, state: gui_state) -> None:
-        if state == gui_state.DEFAULT:
+    def __button_index_helper_first_doubcl(self, i:int, j:int) -> None:
+        print(self.Buttons_win[i])
+        state = self.Buttons_win[i][1][1]
+        button_text_bool = "Password" in self.Buttons_win[i][0][j]["text"]
+        label_text_bool = "User" not in self.Buttons_win[i][0][j]["text"] and not button_text_bool
+        if state == gui_state.DEFAULT and label_text_bool:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__expand_gui_num_users(i, j))
-        elif state == gui_state.USER_PASS_CENSURED:
-            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__expand_gui_num_users(i, j))
-        elif state == gui_state.USER_PASS_UNCENSURED:
-            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__expand_gui_num_users(i, j))
-        
+        elif state == gui_state.CLOSE and label_text_bool:
+            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__default_gui_data_to_screen())
+        elif state == gui_state.USER_PASS_CENSURED and button_text_bool:
+            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__expand_gui_users_pass())
+        elif state == gui_state.USER_PASS_UNCENSURED and button_text_bool:
+            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__show_password(i, j))
+            
+    def __show_password(self, i, j):
+        print(i)
+        print(j)
+        key = self.Buttons_win[i][1][0]
+        password = "Password: " + self.__dicto[key][(j-1)//2+1]["password"]
+        self.Buttons_win[i][0][j].config(text = password)
+                
     def __expand_gui_num_users(self, i:int, j: int) -> None:
-        ########################## Fix appending buttons
-        print(self.Buttons_win[1])
-        key = self.Buttons_win[i][1]
+        key = self.Buttons_win[i][1][0]
         self.Buttons_win[i][0][1].destroy()
+        self.Buttons_win[i][1][1] = gui_state.USER_PASS_UNCENSURED
         del(self.Buttons_win[i][0][1])
         grid_row_cont = self.Buttons_win[i][2][0] + 1
-        border = 0
         
         for num_users in range(1, len(self.__dicto[key]) + 1):
             user = self.__dicto[key][num_users]["user"]
@@ -152,24 +165,23 @@ class data_window:
             password = len(password)*"*"
             password = f"Password: {password}"
             #text += f"User: {user}\nPassword: {password}\n"
-            user_button = tk.Button(self.win,text=user, border=border, relief=tk.SUNKEN, anchor="nw", justify="left")
-            user_button.grid(row = grid_row_cont)
-            self.Buttons_win[i].append([user_button, key, grid_row_cont])
-            password_button = tk.Button(self.win,text=password, border=border, relief=tk.SUNKEN, anchor="nw", justify="left")
-            password_button.grid(row = grid_row_cont + 1)
-            self.Buttons_win[i].append([password_button, key, grid_row_cont + 1])
+            user_button = tk.Button(self.win,text=user, border=self.border, relief=tk.SUNKEN, anchor="nw", justify="left")
+            user_button.grid(row = grid_row_cont, sticky=tk.E+tk.W)
+            self.Buttons_win[i][0].append(user_button)
+            password_button = tk.Button(self.win,text=password, border=self.border, relief=tk.SUNKEN, anchor="nw", justify="left")
+            password_button.grid(row = grid_row_cont + 1, sticky=tk.E+tk.W)
+            self.Buttons_win[i][0].append(password_button)
             grid_row_cont += 2
         
         for i in range(len(self.Buttons_win)):
-            for j in range(len(self.Buttons_win[i][0])//2):
-                self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j, gui_state.DEFAULT))
-    def __expand_gui_users_pass(self, key, state: gui_state) -> None:
-        pass
+            for j in range(1, len(self.Buttons_win[i][0])):
+                self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j))
+    def __expand_gui_users_pass(self) -> None:
+        self.printo()
         
         
     def __default_gui_data_to_screen(self) -> None:
         self.Buttons_win = []
-        border = 0
         grid_cont = 0
         for key in self.__dicto:
             site = f"\n{key}"
@@ -177,14 +189,14 @@ class data_window:
             
             next_grid_cont = grid_cont + len(self.__dicto[key])*2
             
-            Label_site = tk.Button(self.win,text=site, border=border, relief=tk.SUNKEN, anchor="center", justify="center", font=30)
-            Label_site.grid(row = grid_cont, column = 0)
-            button_site = tk.Button(self.win,text=num_users, border=border, relief=tk.SUNKEN, anchor="center", justify="left")
-            button_site.grid(row = next_grid_cont, column = 0)
+            Label_site = tk.Button(self.win,text=site, border=self.border, relief=tk.SUNKEN, anchor=tk.CENTER, justify=tk.CENTER, font=30, width=25)
+            Label_site.grid(row = grid_cont, column = 0, sticky=tk.E+tk.W)
+            button_site = tk.Button(self.win,text=num_users, border=self.border, relief=tk.SUNKEN, anchor=tk.W, justify="left")
+            button_site.grid(row = next_grid_cont, column = 0, sticky=tk.E+tk.W)
 
             self.Buttons_win.append([
                 [Label_site, button_site],
-                key,
+                [key, gui_state.DEFAULT],
                 [grid_cont, next_grid_cont] # grid of Site, Grid of last password before site's grid
                 ]
             )
@@ -192,7 +204,7 @@ class data_window:
             
         for i in range(len(self.Buttons_win)):
             for j in range(len(self.Buttons_win[i][0])):
-                self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j, gui_state.DEFAULT))
+                self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j))
         
     def __update_scrollbar(self, event) -> None:
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
