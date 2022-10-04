@@ -7,8 +7,10 @@ from typing import Callable
 
 from img_utils import resize_image, change_img_colors
 
-class data_window_state(Enum):
-    pass
+class gui_state(Enum):
+    DEFAULT = auto()
+    USER_PASS_CENSURED = auto()
+    USER_PASS_UNCENSURED = auto()
 
 class buttons_state(Enum):
     MENU = auto()
@@ -116,6 +118,9 @@ class data_window:
         self.__on_button(button=key_button, primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state= buttons_state.KEY)
         self.__on_button(button=config_button, primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state= buttons_state.CONFIG)
         
+    def load_dict(self, dicto: dict) -> None:
+        self.__dicto = dicto
+        
     def __load_images(self) -> None:
         self.__menu_image = resize_image(self.__menu_image_path, width = self.buttons_width, height=self.buttons_height)
         self.__add_image = resize_image(self.__add_image_path, width = self.buttons_width, height=self.buttons_height)
@@ -123,15 +128,23 @@ class data_window:
         self.__key_image = resize_image(self.__key_image_path, width = self.buttons_width, height=self.buttons_height)
         self.__config_image = resize_image(self.__config_image_path, width = self.buttons_width, height=self.buttons_height)
     
-    def __button_index_helper_first_doubcl(self, i:int, j:int) -> None:
-        self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__double_click_first_doubcl(i))
+    def __button_index_helper_first_doubcl(self, i:int, j:int, state: gui_state) -> None:
+        if state == gui_state.DEFAULT:
+            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__expand_gui_num_users(i, j))
+        elif state == gui_state.USER_PASS_CENSURED:
+            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__expand_gui_num_users(i, j))
+        elif state == gui_state.USER_PASS_UNCENSURED:
+            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__expand_gui_num_users(i, j))
         
-    def __double_click_first_doubcl(self, i:int) -> None:
+    def __expand_gui_num_users(self, i:int, j: int) -> None:
+        ########################## Fix appending buttons
+        print(self.Buttons_win[1])
         key = self.Buttons_win[i][1]
-        print(self.Buttons_win[i])
-        #self.Buttons_win[i][0][1].destroy()
+        self.Buttons_win[i][0][1].destroy()
+        del(self.Buttons_win[i][0][1])
         grid_row_cont = self.Buttons_win[i][2][0] + 1
         border = 0
+        
         for num_users in range(1, len(self.__dicto[key]) + 1):
             user = self.__dicto[key][num_users]["user"]
             user = f"User: {user}"
@@ -141,12 +154,20 @@ class data_window:
             #text += f"User: {user}\nPassword: {password}\n"
             user_button = tk.Button(self.win,text=user, border=border, relief=tk.SUNKEN, anchor="nw", justify="left")
             user_button.grid(row = grid_row_cont)
+            self.Buttons_win[i].append([user_button, key, grid_row_cont])
             password_button = tk.Button(self.win,text=password, border=border, relief=tk.SUNKEN, anchor="nw", justify="left")
             password_button.grid(row = grid_row_cont + 1)
+            self.Buttons_win[i].append([password_button, key, grid_row_cont + 1])
             grid_row_cont += 2
         
-    def __default_data_to_screen(self, dict: dict) -> None:
-        self.__dicto = dict
+        for i in range(len(self.Buttons_win)):
+            for j in range(len(self.Buttons_win[i][0])//2):
+                self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j, gui_state.DEFAULT))
+    def __expand_gui_users_pass(self, key, state: gui_state) -> None:
+        pass
+        
+        
+    def __default_gui_data_to_screen(self) -> None:
         self.Buttons_win = []
         border = 0
         grid_cont = 0
@@ -171,7 +192,7 @@ class data_window:
             
         for i in range(len(self.Buttons_win)):
             for j in range(len(self.Buttons_win[i][0])):
-                self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j))
+                self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j, gui_state.DEFAULT))
         
     def __update_scrollbar(self, event) -> None:
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -208,16 +229,18 @@ class data_window:
         self.menu = tk.Frame(self.root, width=self.menu_width, height=self.menu_weight ,background=self.__default_bg_color)
         #self.menu.pack(side=tk.LEFT ,fill=tk.BOTH, expand=1)
         self.menu.pack(side=tk.LEFT ,fill=tk.BOTH)
+        
+        self.load_dict(example_dict)
 
         self.__load_images()
         self.__create_menu(self.menu)
         self.__set_scrollbar(self.root)
-        self.__default_data_to_screen(example_dict)
+        self.__default_gui_data_to_screen()
         self.win.bind("<Configure>", self.__update_scrollbar)
         self.root.mainloop()
 
 A = data_window()
-example_dict = { # Global variable fix function's local variables __default_data_to_screen when finish
+example_dict = { # Global variable fix function's local variables __default_gui_data_to_screen when finish
                 'site 01':{
                     1:{'user': 'user1', 'password': 'pass1', 'token': 'token1'},
                     2: {'user': 'user3', 'password': 'pass3', 'token': 'token3'}},
