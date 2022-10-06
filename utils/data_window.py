@@ -29,12 +29,18 @@ class data_window:
         self.menu_buttons_step: int = self.height // 6
         self.buttons_width: int = 40
         self.buttons_height: int = self.buttons_width
-        self.border: int = 1
+        self.border: int = 0
         
-        self.__default_bg_color: str = "#3a7ff6"         # Default color bg (permanent)
-        self.__default_fg_color: str = "#000000"         # Default color fg (permanent)
+        self.__default_menu_bg_color: str = "#3a7ff6"   # Default color bg (permanent)
+        self.__default_fg_color: str = "#000000"        # Default color fg (permanent)
         self.__highlighted_fg_color: str = "#ff0000"    # highlighted bg color when mouse on button (temporal)
         self.__highlighted_bg_color: str = "#0000ff"    # highlighted bg color when mouse on button (temporal)
+        self.font = "Times"
+        self.font_size_n = 12
+        self.font_size_h1 = 15
+        self.button_create_fg_color = "#ff7777"
+        self.button_load_fg_color = "#87d2fa"
+        self.bg_color = "#1e1e1e"
         
         self.__resources_dir = r"resources"
         self.__menu_image_path = os.path.join(self.__resources_dir, "menu.png")
@@ -55,7 +61,7 @@ class data_window:
                                 highlightthickness=3,
                                 activebackground=self.__highlighted_bg_color,
                                 activeforeground=self.__highlighted_fg_color,
-                                bg = self.__default_bg_color,
+                                bg = self.__default_menu_bg_color,
                                 image=image,
                                 command = command
                                 )
@@ -68,7 +74,7 @@ class data_window:
     
     def __on_enter_mouse(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color: str = None) -> None:
         if secundary_color is None:
-            secundary_color = self.__default_bg_color
+            secundary_color = self.__default_menu_bg_color
         if state == buttons_state.MENU:
             self.__menu_image = change_img_colors(self.__menu_image_path, primary_color, secundary_color, self.buttons_width, self.buttons_height)
             button.config(image = self.__menu_image)
@@ -87,19 +93,19 @@ class data_window:
     
     def __on_leave_mouse(self, button: tk.Button, state: buttons_state, primary_color: str) -> None:
         if state == buttons_state.MENU:
-            self.__menu_image = change_img_colors(self.__menu_image_path, primary_color, self.__default_bg_color, self.buttons_width, self.buttons_height)
+            self.__menu_image = change_img_colors(self.__menu_image_path, primary_color, self.__default_menu_bg_color, self.buttons_width, self.buttons_height)
             button.config(image = self.__menu_image)
         elif state == buttons_state.ADD:
-            self.__add_image = change_img_colors(self.__add_image_path, primary_color, self.__default_bg_color, self.buttons_width, self.buttons_height)
+            self.__add_image = change_img_colors(self.__add_image_path, primary_color, self.__default_menu_bg_color, self.buttons_width, self.buttons_height)
             button.config(image = self.__add_image)
         elif state == buttons_state.SAVE:
-            self.__save_image = change_img_colors(self.__save_image_path, primary_color, self.__default_bg_color, self.buttons_width, self.buttons_height)
+            self.__save_image = change_img_colors(self.__save_image_path, primary_color, self.__default_menu_bg_color, self.buttons_width, self.buttons_height)
             button.config(image = self.__save_image)
         elif state == buttons_state.KEY:
-            self.__key_image = change_img_colors(self.__key_image_path, primary_color, self.__default_bg_color, self.buttons_width, self.buttons_height)
+            self.__key_image = change_img_colors(self.__key_image_path, primary_color, self.__default_menu_bg_color, self.buttons_width, self.buttons_height)
             button.config(image = self.__key_image)
         elif state == buttons_state.CONFIG:
-            self.__config_image = change_img_colors(self.__config_image_path, primary_color, self.__default_bg_color, self.buttons_width, self.buttons_height)
+            self.__config_image = change_img_colors(self.__config_image_path, primary_color, self.__default_menu_bg_color, self.buttons_width, self.buttons_height)
             button.config(image = self.__config_image)
     
     def __create_menu(self, window: tk.Frame) -> None:
@@ -165,10 +171,32 @@ class data_window:
             password = len(password)*"*"
             password = f"Password: {password}"
             #text += f"User: {user}\nPassword: {password}\n"
-            user_button = tk.Button(self.win,text=user, border=self.border, relief=tk.SUNKEN, anchor="nw", justify="left")
+            user_button = tk.Button(self.win,
+                                    text=user,
+                                    border=self.border,
+                                    relief=tk.SUNKEN,
+                                    anchor="nw",
+                                    justify="left",
+                                    font=(self.font, self.font_size_n),
+                                    fg = self.button_create_fg_color,
+                                    bg = self.bg_color,
+                                    activebackground = self.button_create_fg_color,
+                                    activeforeground = self.bg_color
+                                    )
             user_button.grid(row = grid_row_cont, sticky=tk.E+tk.W)
             self.Buttons_win[i][0].append(user_button)
-            password_button = tk.Button(self.win,text=password, border=self.border, relief=tk.SUNKEN, anchor="nw", justify="left")
+            password_button = tk.Button(self.win,
+                                        text=password,
+                                        border=self.border,
+                                        relief=tk.SUNKEN,
+                                        anchor="nw",
+                                        justify="left",
+                                        font=(self.font, self.font_size_n),
+                                        fg = self.button_create_fg_color,
+                                        bg = self.bg_color,
+                                        activebackground = self.button_create_fg_color,
+                                        activeforeground = self.bg_color
+                                        )
             password_button.grid(row = grid_row_cont + 1, sticky=tk.E+tk.W)
             self.Buttons_win[i][0].append(password_button)
             grid_row_cont += 2
@@ -189,9 +217,32 @@ class data_window:
             
             next_grid_cont = grid_cont + len(self.__dicto[key])*2
             
-            Label_site = tk.Button(self.win,text=site, border=self.border, relief=tk.SUNKEN, anchor=tk.CENTER, justify=tk.CENTER, font=30, width=25)
+            Label_site = tk.Button(self.win,
+                                   text=site,
+                                   border=self.border,
+                                   relief=tk.SUNKEN,
+                                   anchor=tk.CENTER,
+                                   justify=tk.CENTER,
+                                   width=25,
+                                   font=(self.font, self.font_size_h1),
+                                   fg = self.button_create_fg_color,
+                                   bg = self.bg_color,
+                                   activebackground = self.button_create_fg_color,
+                                   activeforeground = self.bg_color
+                                   )
             Label_site.grid(row = grid_cont, column = 0, sticky=tk.E+tk.W)
-            button_site = tk.Button(self.win,text=num_users, border=self.border, relief=tk.SUNKEN, anchor=tk.W, justify="left")
+            button_site = tk.Button(self.win,
+                                    text=num_users,
+                                    border=self.border,
+                                    relief=tk.SUNKEN,
+                                    anchor=tk.W,
+                                    justify="left",
+                                    font=(self.font, self.font_size_n),
+                                    fg = self.button_create_fg_color,
+                                    bg = self.bg_color,
+                                    activebackground = self.button_create_fg_color,
+                                    activeforeground = self.bg_color
+                                    )
             button_site.grid(row = next_grid_cont, column = 0, sticky=tk.E+tk.W)
 
             self.Buttons_win.append([
@@ -210,22 +261,25 @@ class data_window:
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
             
     def __set_scrollbar(self, window: tk.Frame) -> None:
-        self.main = tk.Frame(window)
+        self.main = tk.Frame(window, bg = self.bg_color, background=self.bg_color)
         self.main.pack(side = tk.RIGHT, fill=tk.BOTH)
-        self.canvas = tk.Canvas(self.main)
-        my_scrollbar = ttk.Scrollbar(self.main, orient = tk.VERTICAL, command = self.canvas.yview)
+        self.canvas = tk.Canvas(self.main, bg = self.bg_color, background=self.bg_color)
+        my_scrollbar = ttk.Scrollbar(self.main,
+                                     orient = tk.VERTICAL,
+                                     command = self.canvas.yview)
         my_scrollbar.pack(side = tk.RIGHT, fill = tk.Y, anchor="e")
         
         self.canvas.pack(side = tk.LEFT, fill=tk.BOTH)
         self.canvas.configure(yscrollcommand=my_scrollbar.set)
         self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         
-        self.win = tk.Frame(self.canvas)
+        self.win = tk.Frame(self.canvas, bg = self.bg_color, background=self.bg_color)
         #self.canvas.create_window((0,0), window=self.win, anchor = "center")
         self.canvas.create_window((self.buttons_width,0), window=self.win, anchor = "nw")
     
     def window(self) -> None:
         self.root=tk.Tk()
+        self.root.configure(bg = self.bg_color, background=self.bg_color)
         screen_width  = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         x_coordinates = screen_width//2 - self.width//2
@@ -238,7 +292,11 @@ class data_window:
         # Set the geometry of the window
         self.root.geometry(self.geometry)
         
-        self.menu = tk.Frame(self.root, width=self.menu_width, height=self.menu_weight ,background=self.__default_bg_color)
+        self.menu = tk.Frame(self.root,
+                             width=self.menu_width,
+                             height=self.menu_weight,
+                             background=self.__default_menu_bg_color,
+                             bg = self.__default_menu_bg_color)
         #self.menu.pack(side=tk.LEFT ,fill=tk.BOTH, expand=1)
         self.menu.pack(side=tk.LEFT ,fill=tk.BOTH)
         
