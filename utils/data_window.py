@@ -43,11 +43,20 @@ class data_window:
         self.bg_color = "#1e1e1e"
         
         self.__resources_dir = r"resources"
-        self.__menu_image_path = os.path.join(self.__resources_dir, "menu.png")
-        self.__add_image_path = os.path.join(self.__resources_dir, "add.png")
-        self.__save_image_path = os.path.join(self.__resources_dir, "save.png")
-        self.__key_image_path = os.path.join(self.__resources_dir, "key.png")
-        self.__config_image_path = os.path.join(self.__resources_dir, "config.png")
+        self.__all_buttons_states = [
+            buttons_state.MENU,
+            buttons_state.ADD,
+            buttons_state.SAVE,
+            buttons_state.KEY,
+            buttons_state.CONFIG
+        ]
+        self.__all_imgs_path = [
+            os.path.join(self.__resources_dir, "menu.png"),
+            os.path.join(self.__resources_dir, "add.png"),
+            os.path.join(self.__resources_dir, "save.png"),
+            os.path.join(self.__resources_dir, "key.png"),
+            os.path.join(self.__resources_dir, "config.png")
+        ]
     
     def printo(self):
         print("button")
@@ -69,44 +78,18 @@ class data_window:
         return button
     
     def __on_button(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color: str = None) -> None:
-        button.bind("<Enter>", lambda event: self.__on_enter_mouse(button, state, primary_color, secundary_color))
-        button.bind("<Leave>", lambda event: self.__on_leave_mouse(button, state, self.__default_fg_color))
+        button.bind("<Enter>", lambda event: self.__on_mouse(button, state, primary_color, secundary_color))
+        button.bind("<Leave>", lambda event: self.__on_mouse(button, state, self.__default_fg_color, self.__default_menu_bg_color))
     
-    def __on_enter_mouse(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color: str = None) -> None:
+    def __on_mouse(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color) -> None:
         if secundary_color is None:
             secundary_color = self.__default_menu_bg_color
-        if state == buttons_state.MENU:
-            self.__menu_image = change_img_colors(self.__menu_image_path, primary_color, secundary_color, self.buttons_width, self.buttons_height)
-            button.config(image = self.__menu_image)
-        elif state == buttons_state.ADD:
-            self.__add_image = change_img_colors(self.__add_image_path, primary_color, secundary_color, self.buttons_width, self.buttons_height)
-            button.config(image = self.__add_image)
-        elif state == buttons_state.SAVE:
-            self.__save_image = change_img_colors(self.__save_image_path, primary_color, secundary_color, self.buttons_width, self.buttons_height)
-            button.config(image = self.__save_image)
-        elif state == buttons_state.KEY:
-            self.__key_image = change_img_colors(self.__key_image_path, primary_color, secundary_color, self.buttons_width, self.buttons_height)
-            button.config(image = self.__key_image)
-        elif state == buttons_state.CONFIG:
-            self.__config_image = change_img_colors(self.__config_image_path, primary_color, secundary_color, self.buttons_width, self.buttons_height)
-            button.config(image = self.__config_image)
-    
-    def __on_leave_mouse(self, button: tk.Button, state: buttons_state, primary_color: str) -> None:
-        if state == buttons_state.MENU:
-            self.__menu_image = change_img_colors(self.__menu_image_path, primary_color, self.__default_menu_bg_color, self.buttons_width, self.buttons_height)
-            button.config(image = self.__menu_image)
-        elif state == buttons_state.ADD:
-            self.__add_image = change_img_colors(self.__add_image_path, primary_color, self.__default_menu_bg_color, self.buttons_width, self.buttons_height)
-            button.config(image = self.__add_image)
-        elif state == buttons_state.SAVE:
-            self.__save_image = change_img_colors(self.__save_image_path, primary_color, self.__default_menu_bg_color, self.buttons_width, self.buttons_height)
-            button.config(image = self.__save_image)
-        elif state == buttons_state.KEY:
-            self.__key_image = change_img_colors(self.__key_image_path, primary_color, self.__default_menu_bg_color, self.buttons_width, self.buttons_height)
-            button.config(image = self.__key_image)
-        elif state == buttons_state.CONFIG:
-            self.__config_image = change_img_colors(self.__config_image_path, primary_color, self.__default_menu_bg_color, self.buttons_width, self.buttons_height)
-            button.config(image = self.__config_image)
+        for i, button_state in enumerate(self.__all_buttons_states):
+            if state != button_state:
+                continue
+            self.__all_imgs[i] = change_img_colors(self.__all_imgs_path[i], primary_color, secundary_color, self.buttons_width, self.buttons_height)
+            button.config(image = self.__all_imgs[i])
+
     
     def __create_menu(self, window: tk.Frame) -> None:
         menu_button = self.__create_buttons(window, "menu", self.__menu_image, self.printo, 0, 0.1)
@@ -130,14 +113,21 @@ class data_window:
         self.__dicto = dicto
         
     def __load_images(self) -> None:
-        self.__menu_image = resize_image(self.__menu_image_path, width = self.buttons_width, height=self.buttons_height)
-        self.__add_image = resize_image(self.__add_image_path, width = self.buttons_width, height=self.buttons_height)
-        self.__save_image = resize_image(self.__save_image_path, width = self.buttons_width, height=self.buttons_height)
-        self.__key_image = resize_image(self.__key_image_path, width = self.buttons_width, height=self.buttons_height)
-        self.__config_image = resize_image(self.__config_image_path, width = self.buttons_width, height=self.buttons_height)
+        self.__menu_image = resize_image(self.__all_imgs_path[0], width = self.buttons_width, height=self.buttons_height)
+        self.__add_image = resize_image(self.__all_imgs_path[1], width = self.buttons_width, height=self.buttons_height)
+        self.__save_image = resize_image(self.__all_imgs_path[2], width = self.buttons_width, height=self.buttons_height)
+        self.__key_image = resize_image(self.__all_imgs_path[3], width = self.buttons_width, height=self.buttons_height)
+        self.__config_image = resize_image(self.__all_imgs_path[4], width = self.buttons_width, height=self.buttons_height)
+        
+        self.__all_imgs = [
+            self.__menu_image,
+            self.__add_image,
+            self.__save_image,
+            self.__key_image,
+            self.__config_image
+        ]
     
     def __button_index_helper_first_doubcl(self, i:int, j:int) -> None:
-        print(self.Buttons_win[i])
         state = self.Buttons_win[i][1][1]
         button_text_bool = "Password" in self.Buttons_win[i][0][j]["text"]
         label_text_bool = "User" not in self.Buttons_win[i][0][j]["text"] and not button_text_bool
@@ -151,13 +141,12 @@ class data_window:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__show_password(i, j))
             
     def __show_password(self, i, j):
-        print(i)
-        print(j)
         key = self.Buttons_win[i][1][0]
         password = "Password: " + self.__dicto[key][(j-1)//2+1]["password"]
         self.Buttons_win[i][0][j].config(text = password)
                 
     def __expand_gui_num_users(self, i:int, j: int) -> None:
+        ################# reduce
         key = self.Buttons_win[i][1][0]
         self.Buttons_win[i][0][1].destroy()
         self.Buttons_win[i][1][1] = gui_state.USER_PASS_UNCENSURED
@@ -170,7 +159,6 @@ class data_window:
             password = self.__dicto[key][num_users]["password"]
             password = len(password)*"*"
             password = f"Password: {password}"
-            #text += f"User: {user}\nPassword: {password}\n"
             user_button = tk.Button(self.win,
                                     text=user,
                                     border=self.border,
@@ -204,11 +192,12 @@ class data_window:
         for i in range(len(self.Buttons_win)):
             for j in range(1, len(self.Buttons_win[i][0])):
                 self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j))
+                
     def __expand_gui_users_pass(self) -> None:
         self.printo()
         
-        
     def __default_gui_data_to_screen(self) -> None:
+        ################# reduce
         self.Buttons_win = []
         grid_cont = 0
         for key in self.__dicto:
