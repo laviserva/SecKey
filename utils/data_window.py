@@ -57,6 +57,9 @@ class data_window:
             os.path.join(self.__resources_dir, "key.png"),
             os.path.join(self.__resources_dir, "config.png")
         ]
+        self.__all_imgs = []
+        self.Buttons_win = []
+        self.Buttons_menu = []
     
     def printo(self):
         print("button")
@@ -92,40 +95,24 @@ class data_window:
 
     
     def __create_menu(self, window: tk.Frame) -> None:
-        menu_button = self.__create_buttons(window, "menu", self.__menu_image, self.printo, 0, 0.1)
-        menu_button.pack()
-        add_button = self.__create_buttons(window, "add", self.__add_image, self.printo, 0, 0.2)
-        add_button.pack()
-        save_button = self.__create_buttons(window, "save", self.__save_image, self.printo, 0, 0.3)
-        save_button.pack()
-        key_button = self.__create_buttons(window, "key", self.__key_image, self.printo, 0, 0.4)
-        key_button.pack()
-        config_button = self.__create_buttons(window, "config", self.__config_image, self.printo, 0, 0.5)
-        config_button.pack()
-        
-        self.__on_button(button=menu_button, primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state= buttons_state.MENU)
-        self.__on_button(button=add_button, primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state= buttons_state.ADD)
-        self.__on_button(button=save_button, primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state= buttons_state.SAVE)
-        self.__on_button(button=key_button, primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state= buttons_state.KEY)
-        self.__on_button(button=config_button, primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state= buttons_state.CONFIG)
-        
+        if self.Buttons_menu == []:
+            menu      = ["menu", "add", "save", "key", "config"]
+            functions = [self.printo]*5
+            for mnu, funct, img in zip(menu, functions, self.__all_imgs):
+                print(mnu, img, funct)
+                button = self.__create_buttons(window, mnu, img, funct, 0, 0.1)
+                button.pack()
+                self.Buttons_menu.append([button])
+            
+            for btn, stt in zip(self.Buttons_menu, self.__all_buttons_states):
+                self.__on_button(button=btn[0], primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state=stt)
     def load_dict(self, dicto: dict) -> None:
         self.__dicto = dicto
         
     def __load_images(self) -> None:
-        self.__menu_image = resize_image(self.__all_imgs_path[0], width = self.buttons_width, height=self.buttons_height)
-        self.__add_image = resize_image(self.__all_imgs_path[1], width = self.buttons_width, height=self.buttons_height)
-        self.__save_image = resize_image(self.__all_imgs_path[2], width = self.buttons_width, height=self.buttons_height)
-        self.__key_image = resize_image(self.__all_imgs_path[3], width = self.buttons_width, height=self.buttons_height)
-        self.__config_image = resize_image(self.__all_imgs_path[4], width = self.buttons_width, height=self.buttons_height)
-        
-        self.__all_imgs = [
-            self.__menu_image,
-            self.__add_image,
-            self.__save_image,
-            self.__key_image,
-            self.__config_image
-        ]
+        if self.__all_imgs != []: return
+        for img in self.__all_imgs_path:
+            self.__all_imgs.append([resize_image(img, width = self.buttons_width, height=self.buttons_height)])
     
     def __button_index_helper_first_doubcl(self, i:int, j:int) -> None:
         state = self.Buttons_win[i][1][1]
@@ -198,7 +185,6 @@ class data_window:
         
     def __default_gui_data_to_screen(self) -> None:
         ################# reduce
-        self.Buttons_win = []
         grid_cont = 0
         for key in self.__dicto:
             site = f"\n{key}"
