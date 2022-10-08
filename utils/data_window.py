@@ -92,7 +92,6 @@ class data_window:
                 continue
             self.__all_imgs[i] = change_img_colors(self.__all_imgs_path[i], primary_color, secundary_color, self.buttons_width, self.buttons_height)
             button.config(image = self.__all_imgs[i])
-
     
     def __create_menu(self, window: tk.Frame) -> None:
         if self.Buttons_menu == []:
@@ -189,9 +188,7 @@ class data_window:
         for key in self.__dicto:
             site = f"\n{key}"
             num_users = f"# Users: {len(self.__dicto[key])}"
-            
             next_grid_cont = grid_cont + len(self.__dicto[key])*2
-            
             Label_site = tk.Button(self.win,
                                    text=site,
                                    border=self.border,
@@ -223,7 +220,7 @@ class data_window:
             self.Buttons_win.append([
                 [Label_site, button_site],
                 [key, gui_state.DEFAULT],
-                [grid_cont, next_grid_cont] # grid of Site, Grid of last password before site's grid
+                [grid_cont, next_grid_cont]
                 ]
             )
             grid_cont = 1 + next_grid_cont
@@ -238,7 +235,7 @@ class data_window:
     def __set_scrollbar(self, window: tk.Frame) -> None:
         self.main = tk.Frame(window, bg = self.bg_color, background=self.bg_color)
         self.main.pack(side = tk.RIGHT, fill=tk.BOTH)
-        self.canvas = tk.Canvas(self.main, bg = self.bg_color, background=self.bg_color)
+        self.canvas = tk.Canvas(self.main, bg = self.bg_color, background=self.bg_color, highlightthickness = 0)
         my_scrollbar = ttk.Scrollbar(self.main,
                                      orient = tk.VERTICAL,
                                      command = self.canvas.yview)
@@ -272,8 +269,7 @@ class data_window:
                              height=self.menu_weight,
                              background=self.__default_menu_bg_color,
                              bg = self.__default_menu_bg_color)
-        #self.menu.pack(side=tk.LEFT ,fill=tk.BOTH, expand=1)
-        self.menu.pack(side=tk.LEFT ,fill=tk.BOTH)
+        self.menu.pack(side=tk.LEFT ,fill=tk.BOTH, expand=1)
         
         self.load_dict(example_dict)
 
@@ -285,7 +281,7 @@ class data_window:
         self.root.mainloop()
 
 A = data_window()
-example_dict = { # Global variable fix function's local variables __default_gui_data_to_screen when finish
+example_dict = {
                 'site 01':{
                     1:{'user': 'user1', 'password': 'pass1', 'token': 'token1'},
                     2: {'user': 'user3', 'password': 'pass3', 'token': 'token3'}},
@@ -295,5 +291,4 @@ example_dict = { # Global variable fix function's local variables __default_gui_
                     1: {'user': 'user4', 'password': 'pass4'}}, 
                 'site 10': {
                     1: {'user': 'user5', 'password': 'pass5'}}}
-
 A.window()
