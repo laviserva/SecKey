@@ -31,10 +31,10 @@ class data_window:
         self.buttons_height: int = self.buttons_width
         self.border: int = 0
         
-        self.__default_menu_bg_color: str = "#3a7ff6"   # Default color bg (permanent)
-        self.__default_fg_color: str = "#000000"        # Default color fg (permanent)
-        self.__highlighted_fg_color: str = "#ff0000"    # highlighted bg color when mouse on button (temporal)
-        self.__highlighted_bg_color: str = "#0000ff"    # highlighted bg color when mouse on button (temporal)
+        self.__default_menu_bg_color: str = "#3a7ff6"           # Default color bg (permanent)
+        self.__default_fg_color: str = "#000000"                # Default color fg (permanent)
+        self.__highlighted_fg_menu_color: str = "#000000"       # highlighted bg color when mouse on button (temporal)
+        self.__highlighted_bg_menu_color: str = "#87d2fa"       # highlighted bg color when mouse on button (temporal)
         self.font = "Times"
         self.font_size_n = 12
         self.font_size_h1 = 15
@@ -71,8 +71,8 @@ class data_window:
                                 height=self.buttons_height,
                                 border=self.border,
                                 highlightthickness=3,
-                                activebackground=self.__highlighted_bg_color,
-                                activeforeground=self.__highlighted_fg_color,
+                                activebackground=self.__highlighted_bg_menu_color,
+                                activeforeground=self.__highlighted_fg_menu_color,
                                 bg = self.__default_menu_bg_color,
                                 image=image,
                                 command = command
@@ -80,11 +80,15 @@ class data_window:
         button.place(relx=relx, rely=rely)
         return button
     
-    def __on_button(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color: str = None) -> None:
-        button.bind("<Enter>", lambda event: self.__on_mouse(button, state, primary_color, secundary_color))
-        button.bind("<Leave>", lambda event: self.__on_mouse(button, state, self.__default_fg_color, self.__default_menu_bg_color))
+    def __on_menu_buttons(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color: str = None) -> None:
+        button.bind("<Enter>", lambda event: self.__on_menu_mouse(button, state, primary_color, secundary_color))
+        button.bind("<Leave>", lambda event: self.__on_menu_mouse(button, state, self.__default_fg_color, self.__default_menu_bg_color))
     
-    def __on_mouse(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color) -> None:
+    def __on_main_buttons(self, i , j, button: tk.Button, primary_color: str, secundary_color: str = None) -> None:
+        button.bind("<Enter>", lambda event: self.__on_main_mouse(button, primary_color, secundary_color))
+        button.bind("<Leave>", lambda event: self.__on_main_mouse(button, secundary_color, primary_color))
+    
+    def __on_menu_mouse(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color) -> None:
         if secundary_color is None:
             secundary_color = self.__default_menu_bg_color
         for i, button_state in enumerate(self.__all_buttons_states):
@@ -92,19 +96,24 @@ class data_window:
                 continue
             self.__all_imgs[i] = change_img_colors(self.__all_imgs_path[i], primary_color, secundary_color, self.buttons_width, self.buttons_height)
             button.config(image = self.__all_imgs[i])
-    
+            
+    def __on_main_mouse(self, button: tk.Button, fg: str, bg: str) -> None:
+        button.config(bg = bg, fg = fg)
+            
     def __create_menu(self, window: tk.Frame) -> None:
         if self.Buttons_menu == []:
             menu      = ["menu", "add", "save", "key", "config"]
             functions = [self.printo]*5
             for mnu, funct, img in zip(menu, functions, self.__all_imgs):
-                print(mnu, img, funct)
                 button = self.__create_buttons(window, mnu, img, funct, 0, 0.1)
                 button.pack()
                 self.Buttons_menu.append([button])
-            
             for btn, stt in zip(self.Buttons_menu, self.__all_buttons_states):
-                self.__on_button(button=btn[0], primary_color= self.__highlighted_fg_color, secundary_color=self.__highlighted_bg_color, state=stt)
+                self.__on_menu_buttons(button=btn[0], primary_color= self.__highlighted_fg_menu_color, secundary_color=self.__highlighted_bg_menu_color, state=stt)
+            
+            fg = self.button_create_fg_color,
+        bg = self.bg_color,
+            
     def load_dict(self, dicto: dict) -> None:
         self.__dicto = dicto
         
@@ -118,13 +127,14 @@ class data_window:
         button_text_bool = "Password" in self.Buttons_win[i][0][j]["text"]
         label_text_bool = "User" not in self.Buttons_win[i][0][j]["text"] and not button_text_bool
         if state == gui_state.DEFAULT and label_text_bool:
-            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__expand_gui_num_users(i, j))
+            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event, i=i, j=j: self.__expand_gui_num_users(i, j))
         elif state == gui_state.CLOSE and label_text_bool:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__default_gui_data_to_screen())
         elif state == gui_state.USER_PASS_CENSURED and button_text_bool:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__expand_gui_users_pass())
         elif state == gui_state.USER_PASS_UNCENSURED and button_text_bool:
-            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__show_password(i, j))
+            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event, i=i, j=j: self.__show_password(i, j))
+        self.__update_main_buttons()
             
     def __show_password(self, i, j):
         key = self.Buttons_win[i][1][0]
@@ -178,6 +188,7 @@ class data_window:
         for i in range(len(self.Buttons_win)):
             for j in range(1, len(self.Buttons_win[i][0])):
                 self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j))
+        self.__update_main_buttons()
                 
     def __expand_gui_users_pass(self) -> None:
         self.printo()
@@ -228,9 +239,15 @@ class data_window:
         for i in range(len(self.Buttons_win)):
             for j in range(len(self.Buttons_win[i][0])):
                 self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j))
+        self.__update_main_buttons()
         
     def __update_scrollbar(self, event) -> None:
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+    
+    def __update_main_buttons(self) -> None:
+        for i in range(len(self.Buttons_win)):
+            for j in range(len(self.Buttons_win[i][0])):
+                self.__on_main_buttons(i, j, self.Buttons_win[i][0][j], self.bg_color, self.button_create_fg_color)
             
     def __set_scrollbar(self, window: tk.Frame) -> None:
         self.main = tk.Frame(window, bg = self.bg_color, background=self.bg_color)
