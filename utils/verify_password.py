@@ -128,7 +128,7 @@ class verify_password(EaD):
                               border = 0,
                               activebackground = self.bg_color,
                               activeforeground = self.ok_button_fg_color,
-                              command = lambda: self.__load_password(key_entry))
+                              command = lambda: self.__load_password(self.file, key_entry))
         ok_button.place(relx=self.__place_in_center - 0.2, rely=self.__place_starting+self.__place_step*6, anchor=CENTER)
         ok_button.bind("<Enter>", lambda event: self.__on_enter(ok_button, self.bg_color, self.ok_button_fg_color))
         ok_button.bind("<Leave>", lambda event: self.__on_leave(ok_button, self.bg_color, self.ok_button_fg_color))
@@ -163,11 +163,11 @@ class verify_password(EaD):
         self.file = filename
         self.__create_windows()
         
-    def __load_password(self, key_entry: tk.Entry) -> None:
+    def __load_password(self, file, key_entry: tk.Entry) -> None:
         self.__entry_value = key_entry.get().encode()
-        if self.file == None or self.file[-4:] != ".bin":
+        if file == None or file[-4:] != ".bin":
             raise Exception(ValueError("Error in file"))
-        out = self.load_and_decript_file(self.file, self.__entry_value)
+        out = self.load_and_decript_file(file, self.__entry_value)
         print(out)
 
 #A = verify_password()
