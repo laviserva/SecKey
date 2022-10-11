@@ -2,10 +2,13 @@ import os
 import tkinter as tk
 from tkinter import ttk
 
+from tkinter import messagebox
+
 from enum import Enum, auto
 from typing import Callable
 
 from img_utils import resize_image, change_img_colors
+from dec import EaD # Encript and Decript
 
 class gui_state(Enum):
     CLOSE = auto
@@ -20,7 +23,10 @@ class buttons_state(Enum):
     CONFIG = auto()
 
 class data_window:
-    def __init__(self) -> None:
+    def __init__(self, data: dict, file_path:str) -> None:
+        self.__data = data
+        self.__file_path = file_path
+        
         self.width: int  = 300
         self.height: int = 400
         self.menu_width: int = 50
@@ -59,9 +65,27 @@ class data_window:
         self.__all_imgs = []
         self.Buttons_win = []
         self.Buttons_menu = []
+        
+        self.EaD = EaD()
     
     def printo(self):
         print("button")
+        
+    def __add_data_to_file(self):
+        screen_width  = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x_coordinates = screen_width//2 - self.width//2
+        y_coordinates = screen_height//2 - self.height//2
+        
+        newWindow = tk.Toplevel(self.root)
+        newWindow.title("New Window")
+        newWindow.iconphoto(False, tk.PhotoImage(file=os.path.join(self.__resources_dir,"sk.png")))
+        newWindow.geometry(f"200x200+{x_coordinates}+{y_coordinates}")
+        tk.Label(newWindow,
+            text =f"File path: {self.__file_path}").grid(column=0, row=0, columnspan=2)
+        text = tk.Label(newWindow, text="Password: ").grid(column=0, row=1)
+        entry = tk.Entry(newWindow).grid(column=1, row=1)
+        #fin = messagebox.askyesno(message="Are you sure you want to continue", title="Confirm")
         
     def __create_menu_buttons(self, window: tk.Frame, text: str, image, command: Callable, relx: float, rely: float) -> tk.Button:
         button = tk.Button(window,
@@ -76,7 +100,6 @@ class data_window:
                                 image=image,
                                 command = command
                                 )
-                                   
         button.place(relx=relx, rely=rely)
         return button
     
@@ -102,7 +125,7 @@ class data_window:
     def __create_menu(self, window: tk.Frame) -> None:
         if self.Buttons_menu == []:
             menu      = ["menu", "add", "save", "key", "config"]
-            functions = [self.printo]*5
+            functions = [self.__add_data_to_file]+[self.printo]*4
             for mnu, funct, img in zip(menu, functions, self.__all_imgs):
                 button = self.__create_menu_buttons(window, mnu, img, funct, 0, 0.1)
                 button.pack()
@@ -291,7 +314,6 @@ class data_window:
         self.canvas.bind_all("<MouseWheel>", self.__set_mousewheel)
         self.root.mainloop()
 
-A = data_window()
 example_dict = {
                 'site 01':{
                     1:{'user': 'user1', 'password': 'pass1', 'token': 'token1'},
@@ -302,4 +324,6 @@ example_dict = {
                     1: {'user': 'user4', 'password': 'pass4'}}, 
                 'site 10': {
                     1: {'user': 'user5', 'password': 'pass5'}}}
+file_path = r"file_encripted.bin"
+A = data_window(example_dict, file_path)
 A.window()
