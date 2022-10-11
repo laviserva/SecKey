@@ -80,19 +80,22 @@ class data_window:
         button.place(relx=relx, rely=rely)
         return button
     
-    def __create_main_buttons(self, window: tk.Frame, text: str, grid_row_cont: int) -> tk.Button:
+    def __create_main_buttons(self, window: tk.Frame, text: str, grid_row_cont: int, anchor: tk = tk.NW ,justify: tk = tk.LEFT, font_size = None, width:int = -1) -> tk.Button:
+        if not font_size: font_size = self.font_size_n
         button = tk.Button(window,
                             text=text,
                             border=self.border,
                             relief=tk.SUNKEN,
-                            anchor="nw",
-                            justify="left",
-                            font=(self.font, self.font_size_n),
+                            anchor=anchor,
+                            justify=justify,
+                            font=(self.font, font_size),
                             fg = self.button_create_fg_color,
                             bg = self.bg_color,
                             activebackground = self.button_create_fg_color,
                             activeforeground = self.bg_color
                             )
+        if width > 0:
+            button.config(width=width)
         button.grid(row = grid_row_cont, sticky=tk.E+tk.W)
         return button
     
@@ -139,13 +142,15 @@ class data_window:
         state = self.Buttons_win[i][1][1]
         button_text_bool = "Password" in self.Buttons_win[i][0][j]["text"]
         label_text_bool = "User" not in self.Buttons_win[i][0][j]["text"] and not button_text_bool
-        
+        button_expanded = len(self.Buttons_win[i][0]) > 2
         if state == gui_state.DEFAULT and label_text_bool:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event, i=i, j=j: self.__expand_gui_num_users(i, j))
         elif state == gui_state.CLOSE and label_text_bool:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__default_gui_data_to_screen())
         elif state == gui_state.USER_PASS and button_text_bool:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__hide_show_password(i, j))
+        elif state == gui_state.USER_PASS and label_text_bool and button_expanded:
+            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event, i=i: self.__contract_gui_num_users(i))
         self.__update_main_buttons()
             
     def __hide_show_password(self, i, j):
@@ -158,6 +163,28 @@ class data_window:
         else:
             password += "*"*text_len
         self.Buttons_win[i][0][j].config(text = password)
+    
+    def __contract_gui_num_users(self, i: int):
+        grid_cont = self.Buttons_win[i][2][0]
+        last_grid = self.Buttons_win[i][2][1]
+        key = self.Buttons_win[i][1][0]
+        site = f"\n{key}"
+        num_users = f"# Users: {len(self.__dicto[key])}"
+        next_grid_cont = grid_cont + len(self.__dicto[key])*2
+        [self.Buttons_win[i][0][j].destroy() for j in range(1, len(self.Buttons_win[i][0]))]
+        del((self.Buttons_win[i][0][1:]))
+        print(self.Buttons_win[i][0])
+        Label_site = self.__create_main_buttons(self.win, site, grid_cont, anchor=tk.CENTER ,justify=tk.CENTER, font_size = self.font_size_h1, width=25)
+        button_site = self.__create_main_buttons(self.win, num_users, next_grid_cont, anchor=tk.W , font_size = self.font_size_n)
+        
+        self.Buttons_win[i][0] = [Label_site, button_site]
+        self.Buttons_win[i][1][1] = gui_state.DEFAULT
+        self.Buttons_win[i][2] = [grid_cont, last_grid]
+
+        for i in range(len(self.Buttons_win)):
+            for j in range(len(self.Buttons_win[i][0])):
+                self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j))
+        self.__update_main_buttons()
         
     def __expand_gui_num_users(self, i:int, j: int) -> None:
         key = self.Buttons_win[i][1][0]
@@ -184,39 +211,13 @@ class data_window:
         self.__update_main_buttons()
         
     def __default_gui_data_to_screen(self) -> None:
-        ################# reduce
         grid_cont = 0
         for key in self.__dicto:
             site = f"\n{key}"
             num_users = f"# Users: {len(self.__dicto[key])}"
             next_grid_cont = grid_cont + len(self.__dicto[key])*2
-            Label_site = tk.Button(self.win,
-                                   text=site,
-                                   border=self.border,
-                                   relief=tk.SUNKEN,
-                                   anchor=tk.CENTER,
-                                   justify=tk.CENTER,
-                                   width=25,
-                                   font=(self.font, self.font_size_h1),
-                                   fg = self.button_create_fg_color,
-                                   bg = self.bg_color,
-                                   activebackground = self.button_create_fg_color,
-                                   activeforeground = self.bg_color
-                                   )
-            Label_site.grid(row = grid_cont, column = 0, sticky=tk.E+tk.W)
-            button_site = tk.Button(self.win,
-                                    text=num_users,
-                                    border=self.border,
-                                    relief=tk.SUNKEN,
-                                    anchor=tk.W,
-                                    justify="left",
-                                    font=(self.font, self.font_size_n),
-                                    fg = self.button_create_fg_color,
-                                    bg = self.bg_color,
-                                    activebackground = self.button_create_fg_color,
-                                    activeforeground = self.bg_color
-                                    )
-            button_site.grid(row = next_grid_cont, column = 0, sticky=tk.E+tk.W)
+            Label_site = self.__create_main_buttons(self.win, site, grid_cont, anchor=tk.CENTER ,justify=tk.CENTER, font_size = self.font_size_h1, width=25)
+            button_site = self.__create_main_buttons(self.win, num_users, next_grid_cont, anchor=tk.W , font_size = self.font_size_n)
 
             self.Buttons_win.append([
                 [Label_site, button_site],
@@ -253,7 +254,6 @@ class data_window:
         self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         
         self.win = tk.Frame(self.canvas, bg = self.bg_color, background=self.bg_color)
-        #self.canvas.create_window((0,0), window=self.win, anchor = "center")
         self.canvas.create_window((self.buttons_width,0), window=self.win, anchor = "nw")
     
     def window(self) -> None:
