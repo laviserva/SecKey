@@ -10,8 +10,7 @@ from img_utils import resize_image, change_img_colors
 class gui_state(Enum):
     CLOSE = auto
     DEFAULT = auto()
-    USER_PASS_CENSURED = auto()
-    USER_PASS_UNCENSURED = auto()
+    USER_PASS = auto()
 
 class buttons_state(Enum):
     MENU = auto()
@@ -64,7 +63,7 @@ class data_window:
     def printo(self):
         print("button")
         
-    def __create_buttons(self, window: tk.Frame, text: str, image, command: Callable, relx: float, rely: float) -> tk.Button:
+    def __create_menu_buttons(self, window: tk.Frame, text: str, image, command: Callable, relx: float, rely: float) -> tk.Button:
         button = tk.Button(window,
                                 text = text,
                                 width=self.buttons_width,
@@ -77,8 +76,36 @@ class data_window:
                                 image=image,
                                 command = command
                                 )
+                                   
         button.place(relx=relx, rely=rely)
         return button
+    
+    def __create_main_buttons(self, window: tk.Frame, text: str, grid_row_cont: int) -> tk.Button:
+        button = tk.Button(window,
+                            text=text,
+                            border=self.border,
+                            relief=tk.SUNKEN,
+                            anchor="nw",
+                            justify="left",
+                            font=(self.font, self.font_size_n),
+                            fg = self.button_create_fg_color,
+                            bg = self.bg_color,
+                            activebackground = self.button_create_fg_color,
+                            activeforeground = self.bg_color
+                            )
+        button.grid(row = grid_row_cont, sticky=tk.E+tk.W)
+        return button
+    
+    def __create_menu(self, window: tk.Frame) -> None:
+        if self.Buttons_menu == []:
+            menu      = ["menu", "add", "save", "key", "config"]
+            functions = [self.printo]*5
+            for mnu, funct, img in zip(menu, functions, self.__all_imgs):
+                button = self.__create_menu_buttons(window, mnu, img, funct, 0, 0.1)
+                button.pack()
+                self.Buttons_menu.append([button])
+            for btn, stt in zip(self.Buttons_menu, self.__all_buttons_states):
+                self.__on_menu_buttons(button=btn[0], primary_color= self.__highlighted_fg_menu_color, secundary_color=self.__highlighted_bg_menu_color, state=stt)
     
     def __on_menu_buttons(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color: str = None) -> None:
         button.bind("<Enter>", lambda event: self.__on_menu_mouse(button, state, primary_color, secundary_color))
@@ -100,20 +127,6 @@ class data_window:
     def __on_main_mouse(self, button: tk.Button, fg: str, bg: str) -> None:
         button.config(bg = bg, fg = fg)
             
-    def __create_menu(self, window: tk.Frame) -> None:
-        if self.Buttons_menu == []:
-            menu      = ["menu", "add", "save", "key", "config"]
-            functions = [self.printo]*5
-            for mnu, funct, img in zip(menu, functions, self.__all_imgs):
-                button = self.__create_buttons(window, mnu, img, funct, 0, 0.1)
-                button.pack()
-                self.Buttons_menu.append([button])
-            for btn, stt in zip(self.Buttons_menu, self.__all_buttons_states):
-                self.__on_menu_buttons(button=btn[0], primary_color= self.__highlighted_fg_menu_color, secundary_color=self.__highlighted_bg_menu_color, state=stt)
-            
-            fg = self.button_create_fg_color,
-        bg = self.bg_color,
-            
     def load_dict(self, dicto: dict) -> None:
         self.__dicto = dicto
         
@@ -126,26 +139,30 @@ class data_window:
         state = self.Buttons_win[i][1][1]
         button_text_bool = "Password" in self.Buttons_win[i][0][j]["text"]
         label_text_bool = "User" not in self.Buttons_win[i][0][j]["text"] and not button_text_bool
+        
         if state == gui_state.DEFAULT and label_text_bool:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event, i=i, j=j: self.__expand_gui_num_users(i, j))
         elif state == gui_state.CLOSE and label_text_bool:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__default_gui_data_to_screen())
-        elif state == gui_state.USER_PASS_CENSURED and button_text_bool:
-            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__expand_gui_users_pass())
-        elif state == gui_state.USER_PASS_UNCENSURED and button_text_bool:
-            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event, i=i, j=j: self.__show_password(i, j))
+        elif state == gui_state.USER_PASS and button_text_bool:
+            self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__hide_show_password(i, j))
         self.__update_main_buttons()
             
-    def __show_password(self, i, j):
+    def __hide_show_password(self, i, j):
         key = self.Buttons_win[i][1][0]
-        password = "Password: " + self.__dicto[key][(j-1)//2+1]["password"]
+        text = self.Buttons_win[i][0][j]["text"].split()[-1]
+        text_len = len(text)
+        password = "Password: "
+        if "*"*text_len == text:
+            password +=  self.__dicto[key][(j-1)//2+1]["password"]
+        else:
+            password += "*"*text_len
         self.Buttons_win[i][0][j].config(text = password)
-                
+        
     def __expand_gui_num_users(self, i:int, j: int) -> None:
-        ################# reduce
         key = self.Buttons_win[i][1][0]
         self.Buttons_win[i][0][1].destroy()
-        self.Buttons_win[i][1][1] = gui_state.USER_PASS_UNCENSURED
+        self.Buttons_win[i][1][1] = gui_state.USER_PASS
         del(self.Buttons_win[i][0][1])
         grid_row_cont = self.Buttons_win[i][2][0] + 1
         
@@ -155,33 +172,9 @@ class data_window:
             password = self.__dicto[key][num_users]["password"]
             password = len(password)*"*"
             password = f"Password: {password}"
-            user_button = tk.Button(self.win,
-                                    text=user,
-                                    border=self.border,
-                                    relief=tk.SUNKEN,
-                                    anchor="nw",
-                                    justify="left",
-                                    font=(self.font, self.font_size_n),
-                                    fg = self.button_create_fg_color,
-                                    bg = self.bg_color,
-                                    activebackground = self.button_create_fg_color,
-                                    activeforeground = self.bg_color
-                                    )
-            user_button.grid(row = grid_row_cont, sticky=tk.E+tk.W)
+            user_button = self.__create_main_buttons(self.win, user, grid_row_cont)
             self.Buttons_win[i][0].append(user_button)
-            password_button = tk.Button(self.win,
-                                        text=password,
-                                        border=self.border,
-                                        relief=tk.SUNKEN,
-                                        anchor="nw",
-                                        justify="left",
-                                        font=(self.font, self.font_size_n),
-                                        fg = self.button_create_fg_color,
-                                        bg = self.bg_color,
-                                        activebackground = self.button_create_fg_color,
-                                        activeforeground = self.bg_color
-                                        )
-            password_button.grid(row = grid_row_cont + 1, sticky=tk.E+tk.W)
+            password_button = self.__create_main_buttons(self.win, password, grid_row_cont + 1)
             self.Buttons_win[i][0].append(password_button)
             grid_row_cont += 2
         
@@ -189,9 +182,6 @@ class data_window:
             for j in range(1, len(self.Buttons_win[i][0])):
                 self.Buttons_win[i][0][j].config(command = lambda i=i, j=j: self.__button_index_helper_first_doubcl(i, j))
         self.__update_main_buttons()
-                
-    def __expand_gui_users_pass(self) -> None:
-        self.printo()
         
     def __default_gui_data_to_screen(self) -> None:
         ################# reduce
@@ -277,7 +267,7 @@ class data_window:
         self.geometry = f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}"
         self.root.iconphoto(False, tk.PhotoImage(file=os.path.join(self.__resources_dir,"sk.png")))
         #self.root.wm_attributes('-toolwindow', 'True') # Hide icon
-        #self.root.resizable(width=False, height=False)
+        self.root.resizable(width=False, height=False)
         # Set the geometry of the window
         self.root.geometry(self.geometry)
         
@@ -286,7 +276,7 @@ class data_window:
                              height=self.menu_weight,
                              background=self.__default_menu_bg_color,
                              bg = self.__default_menu_bg_color)
-        self.menu.pack(side=tk.LEFT ,fill=tk.BOTH, expand=1)
+        self.menu.pack(side=tk.LEFT ,fill=tk.BOTH)
         
         self.load_dict(example_dict)
 
