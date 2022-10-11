@@ -239,6 +239,9 @@ class data_window:
         for i in range(len(self.Buttons_win)):
             for j in range(len(self.Buttons_win[i][0])):
                 self.__on_main_buttons(i, j, self.Buttons_win[i][0][j], self.bg_color, self.button_create_fg_color)
+    
+    def __set_mousewheel(self, event):
+        self.canvas.yview_scroll(-1 * int((event.delta / 120)), "units")
             
     def __set_scrollbar(self, window: tk.Frame) -> None:
         self.main = tk.Frame(window, bg = self.bg_color, background=self.bg_color)
@@ -285,6 +288,7 @@ class data_window:
         self.__set_scrollbar(self.root)
         self.__default_gui_data_to_screen()
         self.win.bind("<Configure>", self.__update_scrollbar)
+        self.canvas.bind_all("<MouseWheel>", self.__set_mousewheel)
         self.root.mainloop()
 
 A = data_window()
