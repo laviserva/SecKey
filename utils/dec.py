@@ -157,7 +157,7 @@ class EaD:
                 try:
                     decript = self.__AES_decript(key, etxt, nonce, tag).decode()
                 except:
-                    raise (Exception(ValueError("MAC chekc failed. The introduced key is incorrect")))
+                    raise (Exception(ValueError("MAC check failed. The introduced key is incorrect")))
                 out.append(decript)
         return self.__remove_salt(out)
             
