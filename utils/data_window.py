@@ -22,11 +22,11 @@ class buttons_state(Enum):
     SAVE = auto()
     KEY = auto()
     CONFIG = auto()
-
-class data_window:
+    
+class init_data:
     def __init__(self, data: dict, file_path:str) -> None:
-        self.__data = data
-        self.__file_path = file_path
+        self.data = data
+        self.file_path = file_path
         
         self.width: int  = 300
         self.height: int = 400
@@ -37,10 +37,10 @@ class data_window:
         self.buttons_height: int = self.buttons_width
         self.border: int = 0
         
-        self.__default_menu_bg_color: str = "#3a7ff6"           # Default color bg (permanent)
-        self.__default_fg_color: str = "#000000"                # Default color fg (permanent)
-        self.__highlighted_fg_menu_color: str = "#000000"       # highlighted bg color when mouse on button (temporal)
-        self.__highlighted_bg_menu_color: str = "#87d2fa"       # highlighted bg color when mouse on button (temporal)
+        self.default_menu_bg_color: str = "#3a7ff6"           # Default color bg (permanent)
+        self.default_fg_color: str = "#000000"                # Default color fg (permanent)
+        self.highlighted_fg_menu_color: str = "#000000"       # highlighted bg color when mouse on button (temporal)
+        self.highlighted_bg_menu_color: str = "#87d2fa"       # highlighted bg color when mouse on button (temporal)
         self.font = "Times"
         self.font_size_n = 12
         self.font_size_h1 = 15
@@ -48,28 +48,32 @@ class data_window:
         self.button_load_fg_color = "#87d2fa"
         self.bg_color = "#1e1e1e"
         
-        self.__resources_dir = r"resources"
-        self.__show_password_image = os.path.join(self.__resources_dir, "show_password.png")
-        self.__hide_password_image = os.path.join(self.__resources_dir, "hide_password.png")
-        self.__all_buttons_states = [
+        self.resources_dir = r"resources"
+        self.show_password_image = os.path.join(self.resources_dir, "show_password.png")
+        self.hide_password_image = os.path.join(self.resources_dir, "hide_password.png")
+        self.all_buttons_states = [
             buttons_state.MENU,
             buttons_state.ADD,
             buttons_state.SAVE,
             buttons_state.KEY,
             buttons_state.CONFIG
         ]
-        self.__all_imgs_path = [
-            os.path.join(self.__resources_dir, "menu.png"),
-            os.path.join(self.__resources_dir, "add.png"),
-            os.path.join(self.__resources_dir, "save.png"),
-            os.path.join(self.__resources_dir, "key.png"),
-            os.path.join(self.__resources_dir, "config.png")
+        self.all_imgs_path = [
+            os.path.join(self.resources_dir, "menu.png"),
+            os.path.join(self.resources_dir, "add.png"),
+            os.path.join(self.resources_dir, "save.png"),
+            os.path.join(self.resources_dir, "key.png"),
+            os.path.join(self.resources_dir, "config.png")
         ]
-        self.__all_imgs = []
+        self.all_imgs = []
         self.Buttons_win = []
         self.Buttons_menu = []
         
         self.EaD = EaD()
+
+class data_window(init_data):
+    def __init__(self, data: dict, file_path: str) -> None:
+        super().__init__(data, file_path)
     
     def printo(self):
         print("button")
@@ -82,7 +86,7 @@ class data_window:
         
         window_add_data = tk.Toplevel(self.root)
         window_add_data.title("New Window")
-        window_add_data.iconphoto(False, tk.PhotoImage(file=os.path.join(self.__resources_dir,"sk.png")))
+        window_add_data.iconphoto(False, tk.PhotoImage(file=os.path.join(self.resources_dir,"sk.png")))
         window_add_data.geometry(f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}")
         
         options = list(self.__dicto.keys()) + ["otro"]
@@ -90,20 +94,50 @@ class data_window:
         option_menu_text.set(options[-1])
         
         label = tk.Label(window_add_data,
-            text =f"{self.__file_path}").grid(row=0, column=0, columnspan=2)
+            text =f"{self.file_path}").grid(row=0, column=0, columnspan=2)
         button_change_file = self.__create_main_buttons(window_add_data, "Change", 0).grid(column=2)
         
         site_label = tk.Label(window_add_data, text= "Site: ").grid(row = 1, column=0)
         site_options = ttk.Combobox(window_add_data, values=options).grid(row = 1, column=1, columnspan=2)
-
-        password_label = tk.Label(window_add_data, text="Password: ").grid(row=2, column=0)
-        password_entry = tk.Entry(window_add_data).grid(row=2, column=1, columnspan=4)
         
-        self.__image = resize_image(self.__show_password_image)
+        user_label = tk.Label(window_add_data, text="User: ").grid(row = 2, column=0)
+        user_entry = tk.Entry(window_add_data).grid(row=2, column=1, columnspan=4)
+
+        password_label = tk.Label(window_add_data, text="Password: ").grid(row=3, column=0)
+        password_entry = tk.Entry(window_add_data).grid(row=3, column=1, columnspan=4)
+        self.__image = resize_image(self.show_password_image)
         show_pw_button = tk.Button(window_add_data,
                                     image=self.__image,
-                                    border = self.border).grid(row=2, column=4)
-
+                                    border = self.border).grid(row=3, column=4)
+    
+        password_label = tk.Label(window_add_data, text="Key: ").grid(row=5, column=0)
+        password_entry = tk.Entry(window_add_data).grid(row=5, column=1, columnspan=4)
+        show_pw_button = tk.Button(window_add_data,
+                                    image=self.__image,
+                                    border = self.border).grid(row=5, column=4)
+        
+        create_file_button = tk.Button(window_add_data,
+                                        text="Create File",
+                                        width = 10,
+                                        height = 3,
+                                        font=(self.font, self.font_size_n),
+                                        fg = self.button_create_fg_color,
+                                        bg = self.bg_color,
+                                        activebackground = self.button_create_fg_color,
+                                        activeforeground = self.bg_color,
+                                        border = 0
+                                        )
+        create_file_button.grid(row=6, column=0)
+        
+        Load_key_button = tk.Button(window_add_data, text="Clean",
+                                     width  = 10,
+                                     height = 3,
+                                     font = (self.font, self.font_size_n),
+                                     fg = self.button_load_fg_color,
+                                     bg = self.bg_color,
+                                     activebackground = self.button_load_fg_color,
+                                     activeforeground = self.bg_color,
+                                     border = 0).grid(row=6, column=2)
         #fin = messagebox.askyesno(message="Are you sure you want to continue", title="Confirm")
         
     def __create_menu_buttons(self, window: tk.Frame, text: str, image, command: Callable, relx: float, rely: float) -> tk.Button:
@@ -113,9 +147,9 @@ class data_window:
                                 height=self.buttons_height,
                                 border=self.border,
                                 highlightthickness=3,
-                                activebackground=self.__highlighted_bg_menu_color,
-                                activeforeground=self.__highlighted_fg_menu_color,
-                                bg = self.__default_menu_bg_color,
+                                activebackground=self.highlighted_bg_menu_color,
+                                activeforeground=self.highlighted_fg_menu_color,
+                                bg = self.default_menu_bg_color,
                                 image=image,
                                 command = command
                                 )
@@ -145,16 +179,16 @@ class data_window:
         if self.Buttons_menu == []:
             menu      = ["menu", "add", "save", "key", "config"]
             functions = [self.__add_data_to_file]+[self.printo]*4
-            for mnu, funct, img in zip(menu, functions, self.__all_imgs):
+            for mnu, funct, img in zip(menu, functions, self.all_imgs):
                 button = self.__create_menu_buttons(window, mnu, img, funct, 0, 0.1)
                 button.pack()
                 self.Buttons_menu.append([button])
-            for btn, stt in zip(self.Buttons_menu, self.__all_buttons_states):
-                self.__on_menu_buttons(button=btn[0], primary_color= self.__highlighted_fg_menu_color, secundary_color=self.__highlighted_bg_menu_color, state=stt)
+            for btn, stt in zip(self.Buttons_menu, self.all_buttons_states):
+                self.__on_menu_buttons(button=btn[0], primary_color= self.highlighted_fg_menu_color, secundary_color=self.highlighted_bg_menu_color, state=stt)
     
     def __on_menu_buttons(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color: str = None) -> None:
         button.bind("<Enter>", lambda event: self.__on_menu_mouse(button, state, primary_color, secundary_color))
-        button.bind("<Leave>", lambda event: self.__on_menu_mouse(button, state, self.__default_fg_color, self.__default_menu_bg_color))
+        button.bind("<Leave>", lambda event: self.__on_menu_mouse(button, state, self.default_fg_color, self.default_menu_bg_color))
     
     def __on_main_buttons(self, i , j, button: tk.Button, primary_color: str, secundary_color: str = None) -> None:
         button.bind("<Enter>", lambda event: self.__on_main_mouse(button, primary_color, secundary_color))
@@ -162,12 +196,12 @@ class data_window:
     
     def __on_menu_mouse(self, button: tk.Button, state: buttons_state, primary_color: str, secundary_color) -> None:
         if secundary_color is None:
-            secundary_color = self.__default_menu_bg_color
-        for i, button_state in enumerate(self.__all_buttons_states):
+            secundary_color = self.default_menu_bg_color
+        for i, button_state in enumerate(self.all_buttons_states):
             if state != button_state:
                 continue
-            self.__all_imgs[i] = change_img_colors(self.__all_imgs_path[i], primary_color, secundary_color, self.buttons_width, self.buttons_height)
-            button.config(image = self.__all_imgs[i])
+            self.all_imgs[i] = change_img_colors(self.all_imgs_path[i], primary_color, secundary_color, self.buttons_width, self.buttons_height)
+            button.config(image = self.all_imgs[i])
             
     def __on_main_mouse(self, button: tk.Button, fg: str, bg: str) -> None:
         button.config(bg = bg, fg = fg)
@@ -176,9 +210,9 @@ class data_window:
         self.__dicto = dicto
         
     def __load_images(self) -> None:
-        if self.__all_imgs != []: return
-        for img in self.__all_imgs_path:
-            self.__all_imgs.append([resize_image(img, width = self.buttons_width, height=self.buttons_height)])
+        if self.all_imgs != []: return
+        for img in self.all_imgs_path:
+            self.all_imgs.append([resize_image(img, width = self.buttons_width, height=self.buttons_height)])
     
     def __button_index_helper_first_doubcl(self, i:int, j:int) -> None:
         state = self.Buttons_win[i][1][1]
@@ -310,7 +344,7 @@ class data_window:
         y_coordinates = screen_height//2 - self.height//2
         self.root.title("SecKey")
         self.geometry = f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}"
-        self.root.iconphoto(False, tk.PhotoImage(file=os.path.join(self.__resources_dir,"sk.png")))
+        self.root.iconphoto(False, tk.PhotoImage(file=os.path.join(self.resources_dir,"sk.png")))
         #self.root.wm_attributes('-toolwindow', 'True') # Hide icon
         self.root.resizable(width=False, height=False)
         # Set the geometry of the window
@@ -319,8 +353,8 @@ class data_window:
         self.menu = tk.Frame(self.root,
                              width=self.menu_width,
                              height=self.menu_weight,
-                             background=self.__default_menu_bg_color,
-                             bg = self.__default_menu_bg_color)
+                             background=self.default_menu_bg_color,
+                             bg = self.default_menu_bg_color)
         self.menu.pack(side=tk.LEFT ,fill=tk.BOTH)
         
         self.load_dict(example_dict)
