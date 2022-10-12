@@ -1,3 +1,4 @@
+from email.mime import image
 import os
 import tkinter as tk
 from tkinter import ttk
@@ -48,6 +49,8 @@ class data_window:
         self.bg_color = "#1e1e1e"
         
         self.__resources_dir = r"resources"
+        self.__show_password_image = os.path.join(self.__resources_dir, "show_password.png")
+        self.__hide_password_image = os.path.join(self.__resources_dir, "hide_password.png")
         self.__all_buttons_states = [
             buttons_state.MENU,
             buttons_state.ADD,
@@ -77,14 +80,30 @@ class data_window:
         x_coordinates = screen_width//2 - self.width//2
         y_coordinates = screen_height//2 - self.height//2
         
-        newWindow = tk.Toplevel(self.root)
-        newWindow.title("New Window")
-        newWindow.iconphoto(False, tk.PhotoImage(file=os.path.join(self.__resources_dir,"sk.png")))
-        newWindow.geometry(f"200x200+{x_coordinates}+{y_coordinates}")
-        tk.Label(newWindow,
-            text =f"File path: {self.__file_path}").grid(column=0, row=0, columnspan=2)
-        text = tk.Label(newWindow, text="Password: ").grid(column=0, row=1)
-        entry = tk.Entry(newWindow).grid(column=1, row=1)
+        window_add_data = tk.Toplevel(self.root)
+        window_add_data.title("New Window")
+        window_add_data.iconphoto(False, tk.PhotoImage(file=os.path.join(self.__resources_dir,"sk.png")))
+        window_add_data.geometry(f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}")
+        
+        options = list(self.__dicto.keys()) + ["otro"]
+        option_menu_text = tk.StringVar()
+        option_menu_text.set(options[-1])
+        
+        label = tk.Label(window_add_data,
+            text =f"{self.__file_path}").grid(row=0, column=0, columnspan=2)
+        button_change_file = self.__create_main_buttons(window_add_data, "Change", 0).grid(column=2)
+        
+        site_label = tk.Label(window_add_data, text= "Site: ").grid(row = 1, column=0)
+        site_options = ttk.Combobox(window_add_data, values=options).grid(row = 1, column=1, columnspan=2)
+
+        password_label = tk.Label(window_add_data, text="Password: ").grid(row=2, column=0)
+        password_entry = tk.Entry(window_add_data).grid(row=2, column=1, columnspan=4)
+        
+        self.__image = resize_image(self.__show_password_image)
+        show_pw_button = tk.Button(window_add_data,
+                                    image=self.__image,
+                                    border = self.border).grid(row=2, column=4)
+
         #fin = messagebox.askyesno(message="Are you sure you want to continue", title="Confirm")
         
     def __create_menu_buttons(self, window: tk.Frame, text: str, image, command: Callable, relx: float, rely: float) -> tk.Button:
@@ -324,6 +343,7 @@ example_dict = {
                     1: {'user': 'user4', 'password': 'pass4'}}, 
                 'site 10': {
                     1: {'user': 'user5', 'password': 'pass5'}}}
+
 file_path = r"file_encripted.bin"
 A = data_window(example_dict, file_path)
 A.window()
