@@ -23,12 +23,12 @@ class buttons_state(Enum):
     CONFIG = auto()
 
 class create_windows_abs():
+    buttons_width: int = 40
+    buttons_height: int = buttons_width
+    border: int = 0
+    bg_color = "#1e1e1e"
     def __init__(self) -> None:
         self.resources_dir = r"resources"
-        self.buttons_width: int = 40
-        self.buttons_height: int = self.buttons_width
-        self.border: int = 0
-        self.bg_color = "#1e1e1e"
         self.dicto = None
         
     @abstractmethod
@@ -49,19 +49,18 @@ class create_windows_abs():
         print("print")
 
 class create_root(create_windows_abs):
+    width: int  = 300
+    height: int = 400
+    font_size_n = 12
+    font_size_h1 = 15
+    font = "Times"
+    bg_color = "#1e1e1e"
+    button_create_fg_color = "#ff7777"
+    
     def __init__(self) -> None:
         super().__init__()
         self.title = "SecKey"
-        self.width: int  = 300
-        self.height: int = 400
-        self.font_size_n = 12
-        self.font_size_h1 = 15
-        
-        self.font = "Times"
-        self.bg_color = "#1e1e1e"
-        self.button_create_fg_color = "#ff7777"
         self.resources_dir = r"resources"
-        
         self.Buttons_win = []
         
     def create_buttons(self, window: tk.Frame, text: str, grid_row_cont: int, anchor: tk = tk.NW ,justify: tk = tk.LEFT, font_size = None, width:int = -1) -> tk.Button:
@@ -94,7 +93,7 @@ class create_root(create_windows_abs):
         self.geometry = f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}"
         self.root.iconphoto(False, tk.PhotoImage(file=os.path.join(self.resources_dir,"sk.png")))
         #self.root.wm_attributes('-toolwindow', 'True') # Hide icon
-        #self.root.resizable(width=False, height=False)
+        self.root.resizable(width=False, height=False)
         # Set the geometry of the window
         self.root.geometry(self.geometry)
         return self.root
@@ -209,16 +208,15 @@ class create_root(create_windows_abs):
             for j in range(len(self.Buttons_win[i][0])):
                 self.__on_buttons(i, j, self.Buttons_win[i][0][j], self.bg_color, self.button_create_fg_color)
     
-
 class create_menu(create_windows_abs):
+    width: int = 50
+    height: int = 400
+    default_bg_color: str = "#3a7ff6"
+    highlighted_fg_color: str = "#000000"
+    highlighted_bg_color: str = "#87d2fa"
+    default_fg_color: str = "#000000"
     def __init__(self) -> None:
         super().__init__()
-        self.width: int = 50
-        self.height: int = 400
-        self.default_bg_color: str = "#3a7ff6"
-        self.highlighted_fg_color: str = "#000000"
-        self.highlighted_bg_color: str = "#87d2fa"
-        self.default_fg_color: str = "#000000"
         self.all_buttons_states = [
             buttons_state.MENU,
             buttons_state.ADD,
@@ -310,7 +308,7 @@ class create_scrollbar(create_windows_abs):
         self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         
         self.win = tk.Frame(self.canvas, bg = self.bg_color, background=self.bg_color)
-        self.canvas.create_window((self.buttons_width,0), window=self.win, anchor = tk.E)
+        self.canvas.create_window((create_menu.width*10,0), window=self.win, anchor = tk.NE)
         self.update_scrollbar()
         return self.win, self.canvas, self.scrollbar
     
