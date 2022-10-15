@@ -10,7 +10,7 @@ from abc import abstractmethod
 from img_utils import resize_image, change_img_colors
 from dec import EaD # Encript and Decript
 
-class gui_state(Enum):
+class create_windows_abs_state(Enum):
     CLOSE = auto
     DEFAULT = auto()
     USER_PASS = auto()
@@ -56,6 +56,7 @@ class create_root(create_windows_abs):
     font = "Times"
     bg_color = "#1e1e1e"
     button_create_fg_color = "#ff7777"
+    button_load_fg_color = "#87d2fa"
     
     def __init__(self) -> None:
         super().__init__()
@@ -113,13 +114,13 @@ class create_root(create_windows_abs):
         button_text_bool = "Password" in self.Buttons_win[i][0][j]["text"]
         label_text_bool = "User" not in self.Buttons_win[i][0][j]["text"] and not button_text_bool
         button_expanded = len(self.Buttons_win[i][0]) > 2
-        if state == gui_state.DEFAULT and label_text_bool:
+        if state == create_windows_abs_state.DEFAULT and label_text_bool:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event, i=i, j=j: self.__expand_gui_num_users(i, j))
-        elif state == gui_state.CLOSE and label_text_bool:
+        elif state == create_windows_abs_state.CLOSE and label_text_bool:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__default_gui())
-        elif state == gui_state.USER_PASS and button_text_bool:
+        elif state == create_windows_abs_state.USER_PASS and button_text_bool:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event: self.__hide_show_password(i, j))
-        elif state == gui_state.USER_PASS and label_text_bool and button_expanded:
+        elif state == create_windows_abs_state.USER_PASS and label_text_bool and button_expanded:
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event, i=i: self.__contract_gui_num_users(i))
         self.__update_main_buttons()
             
@@ -143,12 +144,11 @@ class create_root(create_windows_abs):
         next_grid_cont = grid_cont + len(self.dicto[key])*2
         [self.Buttons_win[i][0][j].destroy() for j in range(1, len(self.Buttons_win[i][0]))]
         del((self.Buttons_win[i][0][1:]))
-        print(self.Buttons_win[i][0])
         Label_site = self.create_buttons(self.win, site, grid_cont, anchor=tk.CENTER ,justify=tk.CENTER, font_size = self.font_size_h1, width=25)
         button_site = self.create_buttons(self.win, num_users, next_grid_cont, anchor=tk.W , font_size = self.font_size_n)
         
         self.Buttons_win[i][0] = [Label_site, button_site]
-        self.Buttons_win[i][1][1] = gui_state.DEFAULT
+        self.Buttons_win[i][1][1] = create_windows_abs_state.DEFAULT
         self.Buttons_win[i][2] = [grid_cont, last_grid]
 
         for i in range(len(self.Buttons_win)):
@@ -159,7 +159,7 @@ class create_root(create_windows_abs):
     def __expand_gui_num_users(self, i:int, j: int) -> None:
         key = self.Buttons_win[i][1][0]
         self.Buttons_win[i][0][1].destroy()
-        self.Buttons_win[i][1][1] = gui_state.USER_PASS
+        self.Buttons_win[i][1][1] = create_windows_abs_state.USER_PASS
         del(self.Buttons_win[i][0][1])
         grid_row_cont = self.Buttons_win[i][2][0] + 1
         
@@ -192,7 +192,7 @@ class create_root(create_windows_abs):
 
             self.Buttons_win.append([
                 [Label_site, button_site],
-                [key, gui_state.DEFAULT],
+                [key, create_windows_abs_state.DEFAULT],
                 [grid_cont, next_grid_cont]
                 ]
             )
@@ -262,7 +262,7 @@ class create_menu(create_windows_abs):
     def default_gui(self) -> None:
         if self.Buttons_menu == []:
             menu      = ["menu", "add", "save", "key", "config"]
-            functions = [self.test]*5
+            functions = [self.test] + [self.test] + [self.test]*3
             for mnu, funct, img in zip(menu, functions, self.all_imgs):
                 button = self.create_buttons(self.menu, mnu, img, funct, 0, 0.1)
                 button.pack()
@@ -321,7 +321,71 @@ class create_scrollbar(create_windows_abs):
     def update_scrollbar(self):
         self.win.bind("<Configure>", self.__update_scrollbar)
         self.canvas.bind_all("<MouseWheel>", self.__set_mousewheel)
+
+class Window_Add_to_Encripted_File(create_root):
+    ######### Add this functionalities if some menu button is pressed
+    def __init__(self) -> None:
+        super().__init__()
+        self.show_password_image = os.path.join(self.resources_dir, "show_password.png")
+        self.hide_password_image = os.path.join(self.resources_dir, "hide_password.png")
+        
+    def add_data_to_file(self, window, geometry, dicto, file_path):
+        window_add_data = tk.Toplevel(window)
+        window_add_data.title("New Window")
+        window_add_data.iconphoto(False, tk.PhotoImage(file=os.path.join(self.resources_dir,"sk.png")))
+        window_add_data.geometry(geometry)
+        
+        options = list(dicto) + ["otro"]
+        option_menu_text = tk.StringVar()
+        option_menu_text.set(options[-1])
+        
+        label = tk.Label(window_add_data,
+            text =f"{file_path}").grid(row=0, column=0, columnspan=2)
+        #button_change_file = self.__create_main_buttons(window_add_data, "Change", 0).grid(column=2)
+        
+        site_label = tk.Label(window_add_data, text= "Site: ").grid(row = 1, column=0)
+        site_options = ttk.Combobox(window_add_data, values=options).grid(row = 1, column=1, columnspan=2)
+        
+        user_label = tk.Label(window_add_data, text="User: ").grid(row = 2, column=0)
+        user_entry = tk.Entry(window_add_data).grid(row=2, column=1, columnspan=4)
+
+        password_label = tk.Label(window_add_data, text="Password: ").grid(row=3, column=0)
+        password_entry = tk.Entry(window_add_data).grid(row=3, column=1, columnspan=4)
+        self.__image = resize_image(self.show_password_image)
+        show_pw_button = tk.Button(window_add_data,
+                                    image=self.__image,
+                                    border = self.border).grid(row=3, column=4)
     
+        password_label = tk.Label(window_add_data, text="Key: ").grid(row=5, column=0)
+        password_entry = tk.Entry(window_add_data).grid(row=5, column=1, columnspan=4)
+        show_pw_button = tk.Button(window_add_data,
+                                    image=self.__image,
+                                    border = self.border).grid(row=5, column=4)
+        
+        create_file_button = tk.Button(window_add_data,
+                                        text="Create File",
+                                        width = 10,
+                                        height = 3,
+                                        font=(self.font, self.font_size_n),
+                                        fg = self.button_create_fg_color,
+                                        bg = self.bg_color,
+                                        activebackground = self.button_create_fg_color,
+                                        activeforeground = self.bg_color,
+                                        border = 0
+                                        )
+        create_file_button.grid(row=6, column=0)
+        
+        Load_key_button = tk.Button(window_add_data, text="Clean",
+                                     width  = 10,
+                                     height = 3,
+                                     font = (self.font, self.font_size_n),
+                                     fg = self.button_load_fg_color,
+                                     bg = self.bg_color,
+                                     activebackground = self.button_load_fg_color,
+                                     activeforeground = self.bg_color,
+                                     border = 0).grid(row=6, column=2)
+        #fin = messagebox.askyesno(message="Are you sure you want to continue", title="Confirm")
+
 example_dict = {
                 'site 01':{
                     1:{'user': 'user1', 'password': 'pass1', 'token': 'token1'},
@@ -342,4 +406,5 @@ scrollbar = create_scrollbar()
 win, canvas, scrollbar_root = scrollbar.create_scrollbar(root_window)
 B.default_gui()
 A.default_gui(win)
+ex = Window_Add_to_Encripted_File()
 A.loop()
