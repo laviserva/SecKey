@@ -27,9 +27,9 @@ class create_windows_abs():
     buttons_height: int = buttons_width
     border: int = 0
     bg_color = "#1e1e1e"
+    
     def __init__(self) -> None:
         self.resources_dir = r"resources"
-        self.dicto = None
         
     @abstractmethod
     def create_buttons(self, *args):
@@ -43,8 +43,9 @@ class create_windows_abs():
     @abstractmethod
     def default_gui(self, *args):
         pass
-    def load_dict(self, dicto: dict):
-        self.dicto = dicto
+    def load_dict(dict: dict):
+        global dicto
+        dicto = dict
     def test(self):
         print("print")
 
@@ -85,7 +86,7 @@ class create_root(create_windows_abs):
     
     def create_main_window(self) -> tk.Tk:
         self.root=tk.Tk()
-        self.root.configure(bg = self.bg_color, background=self.bg_color)
+        self.root.configure(bg = self.bg_color)
         screen_width  = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         x_coordinates = screen_width//2 - self.width//2
@@ -215,8 +216,10 @@ class create_menu(create_windows_abs):
     highlighted_fg_color: str = "#000000"
     highlighted_bg_color: str = "#87d2fa"
     default_fg_color: str = "#000000"
+    
     def __init__(self) -> None:
         super().__init__()
+        self.ex = Window_Add_to_Encripted_File(file_path= file_path)
         self.all_buttons_states = [
             buttons_state.MENU,
             buttons_state.ADD,
@@ -234,9 +237,8 @@ class create_menu(create_windows_abs):
         ]
         self.all_imgs = self.__load_images()
     
-    def create_buttons(self, window: tk.Frame, text: str, image, command: Callable, relx: float, rely: float) -> tk.Button:
+    def create_buttons(self, window: tk.Frame, image, command: Callable, relx: float, rely: float) -> tk.Button:
         button = tk.Button(window,
-                                text = text,
                                 width=self.buttons_width,
                                 height=self.buttons_height,
                                 border=self.border,
@@ -261,10 +263,9 @@ class create_menu(create_windows_abs):
     
     def default_gui(self) -> None:
         if self.Buttons_menu == []:
-            menu      = ["menu", "add", "save", "key", "config"]
-            functions = [self.test] + [self.test] + [self.test]*3
-            for mnu, funct, img in zip(menu, functions, self.all_imgs):
-                button = self.create_buttons(self.menu, mnu, img, funct, 0, 0.1)
+            functions = [self.test] + [lambda menu=self.menu: self.ex.add_data_to_file(menu)] + [self.test]*3
+            for funct, img in zip(functions, self.all_imgs):
+                button = self.create_buttons(self.menu, img, funct, 0, 0.1)
                 button.pack()
                 self.Buttons_menu.append([button])
             for btn, stt in zip(self.Buttons_menu, self.all_buttons_states):
@@ -323,68 +324,89 @@ class create_scrollbar(create_windows_abs):
         self.canvas.bind_all("<MouseWheel>", self.__set_mousewheel)
 
 class Window_Add_to_Encripted_File(create_root):
-    ######### Add this functionalities if some menu button is pressed
-    def __init__(self) -> None:
+    def __init__(self, file_path) -> None:
         super().__init__()
         self.show_password_image = os.path.join(self.resources_dir, "show_password.png")
         self.hide_password_image = os.path.join(self.resources_dir, "hide_password.png")
         
-    def add_data_to_file(self, window, geometry, dicto, file_path):
-        window_add_data = tk.Toplevel(window)
+        self.file_path = file_path
+        
+    def add_data_to_file(self, window):
+        window_add_data = tk.Toplevel(window, bg = self.bg_color)
         window_add_data.title("New Window")
         window_add_data.iconphoto(False, tk.PhotoImage(file=os.path.join(self.resources_dir,"sk.png")))
-        window_add_data.geometry(geometry)
+        window_add_data.geometry(self.__get_geometry(window_add_data))
+        return self.create_main_window(window_add_data)
         
-        options = list(dicto) + ["otro"]
+    def create_main_window(self, window):
+        self.__image = resize_image(self.show_password_image)
+        
+        text = [f"{file_path}", "Site: ", "User: ", "Password: ", "Key: "]
+        rows = [0, 1, 2, 4, 6]
+        colonspan = [2] + [1 for i in range(len(rows) -1)]
+        self.body_labels = []
+        for txt, row, clspn, in zip(text, rows, colonspan):
+            self.create_labels(window, text=txt, row=row, column=0, columnspan=clspn)
+        #fin = messagebox.askyesno(message="Are you sure you want to continue", title="Confirm")
+        
+        options = list(self.dicto) + ["otro"]
         option_menu_text = tk.StringVar()
         option_menu_text.set(options[-1])
+        self.create_combobox(window, options, row=1, column=1, columnspand=4)
+        self.create_entry(window, row=2, column=1, columnspand=4)
+        self.create_entry(window, row=4, column=1, columnspand=4)
+        self.create_entry(window, row=6, column=1, columnspand=4)
+        self.create_buttons(window, text="Ok",    width=10, height=3, fg=self.button_load_fg_color,   row=7, column=1)
+        self.create_buttons(window, text="Clean", width=10, height=3, fg=self.button_create_fg_color, row=7, column=2)
+        self.create_buttons(window, text="Change", fg=self.button_load_fg_color, row=0, column=2)
+        self.create_buttons_image(window, self.__image, row=4, column=4)
+        self.create_buttons_image(window, self.__image, row=6, column=4)
         
-        label = tk.Label(window_add_data,
-            text =f"{file_path}").grid(row=0, column=0, columnspan=2)
-        #button_change_file = self.__create_main_buttons(window_add_data, "Change", 0).grid(column=2)
-        
-        site_label = tk.Label(window_add_data, text= "Site: ").grid(row = 1, column=0)
-        site_options = ttk.Combobox(window_add_data, values=options).grid(row = 1, column=1, columnspan=2)
-        
-        user_label = tk.Label(window_add_data, text="User: ").grid(row = 2, column=0)
-        user_entry = tk.Entry(window_add_data).grid(row=2, column=1, columnspan=4)
-
-        password_label = tk.Label(window_add_data, text="Password: ").grid(row=3, column=0)
-        password_entry = tk.Entry(window_add_data).grid(row=3, column=1, columnspan=4)
-        self.__image = resize_image(self.show_password_image)
-        show_pw_button = tk.Button(window_add_data,
-                                    image=self.__image,
-                                    border = self.border).grid(row=3, column=4)
     
-        password_label = tk.Label(window_add_data, text="Key: ").grid(row=5, column=0)
-        password_entry = tk.Entry(window_add_data).grid(row=5, column=1, columnspan=4)
-        show_pw_button = tk.Button(window_add_data,
-                                    image=self.__image,
-                                    border = self.border).grid(row=5, column=4)
-        
-        create_file_button = tk.Button(window_add_data,
-                                        text="Create File",
-                                        width = 10,
-                                        height = 3,
-                                        font=(self.font, self.font_size_n),
-                                        fg = self.button_create_fg_color,
-                                        bg = self.bg_color,
-                                        activebackground = self.button_create_fg_color,
-                                        activeforeground = self.bg_color,
-                                        border = 0
-                                        )
-        create_file_button.grid(row=6, column=0)
-        
-        Load_key_button = tk.Button(window_add_data, text="Clean",
-                                     width  = 10,
-                                     height = 3,
-                                     font = (self.font, self.font_size_n),
-                                     fg = self.button_load_fg_color,
-                                     bg = self.bg_color,
-                                     activebackground = self.button_load_fg_color,
-                                     activeforeground = self.bg_color,
-                                     border = 0).grid(row=6, column=2)
-        #fin = messagebox.askyesno(message="Are you sure you want to continue", title="Confirm")
+    def create_entry(self, window, row, column, columnspand = 1, width=20):
+        return tk.Entry(window, width=width + 3).grid(row=row, column=column, columnspan=columnspand)
+    
+    def create_combobox(self, window, options, row, column, columnspand = 1, width=20):
+        return ttk.Combobox(window, values=options, width=width).grid(row = row, column=column, columnspan=columnspand)
+
+    def create_labels(self, window: tk.Frame, text: str, row, column, columnspan = 1, rowspan = 1) -> tk.Button:
+        button = tk.Label(window,  
+                        text= text,
+                        anchor=tk.W,
+                        justify=tk.RIGHT,
+                        fg=self.button_create_fg_color,
+                        bg=self.bg_color
+                        ).grid(row = row, column=column, columnspan = columnspan, rowspan = rowspan, sticky=tk.E)
+        return button
+
+    def create_buttons_image(self, window, image, row, column):
+        button = tk.Button(window,
+                                   image=image,
+                                    border = self.border,
+                                    bg = self.bg_color,
+                                    activebackground= self.bg_color).grid(row=row, column=column)
+        return button
+    
+    def create_buttons(self, window: tk.Frame, text: str, fg: str, row: int, width:int= None, height:int= None, column: int = 0, font_size:int = None) -> tk.Button:
+        if not font_size: font_size = self.font_size_n
+        button = tk.Button(window,
+                            text=text,
+                            font=(self.font, font_size),
+                            fg = fg,
+                            bg = self.bg_color,
+                            activebackground = fg,
+                            activeforeground = self.bg_color,
+                            border = self.border,
+                            relief=tk.SUNKEN
+                            )
+        if width: button.config(width=width)
+        if height: button.config(height=height)
+        button.grid(row = row, column=column, sticky=tk.E+tk.W)
+        return button
+    def __get_geometry(self, window):
+        x_coordinates = window.winfo_screenwidth()//2 - self.width//2
+        y_coordinates = window.winfo_screenheight()//2 - self.height//2
+        return f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}"
 
 example_dict = {
                 'site 01':{
@@ -396,9 +418,10 @@ example_dict = {
                     1: {'user': 'user4', 'password': 'pass4'}}, 
                 'site 10': {
                     1: {'user': 'user5', 'password': 'pass5'}}}
+
 file_path = r"file_encripted.bin"
 A = create_root()#data_window(example_dict, file_path)
-A.load_dict(example_dict)
+create_windows_abs.dicto = example_dict
 root_window = A.create_main_window()
 B = create_menu()
 menu_window = B.create_main_window(root_window)
@@ -406,5 +429,5 @@ scrollbar = create_scrollbar()
 win, canvas, scrollbar_root = scrollbar.create_scrollbar(root_window)
 B.default_gui()
 A.default_gui(win)
-ex = Window_Add_to_Encripted_File()
+#ex = Window_Add_to_Encripted_File(file_path= file_path)
 A.loop()
