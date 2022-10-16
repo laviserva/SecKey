@@ -13,10 +13,20 @@ class start_app_state(Enum):
     LOADING_FILE = auto()
 
 class start_app(EaD):
+    width  = 300
+    height = 400
+    
+    font = "Times"
+    font_size_h1 = 50
+    font_size_n = 16
+    title_font_color = "#d8de76"
+    button_create_fg_color = "#ff7777"
+    button_load_fg_color = "#87d2fa"
+    bg_color = "#1e1e1e"
+        
     def __init__(self) -> None:
         self.state = start_app_state.ALIVE
-        self.width  = 300
-        self.height = 400
+        
         
         self.place_starting = 0.2
         self.place_step = 0.1
@@ -25,14 +35,6 @@ class start_app(EaD):
         self.place_width = int(self.place_width_porcentage * self.width)
         self.place_height_porcentage = self.place_width_porcentage/20
         self.place_height = 5
-        
-        self.font = "Times"
-        self.font_size_h1 = 50
-        self.font_size_n = 16
-        self.title_font_color = "#d8de76"
-        self.button_create_fg_color = "#ff7777"
-        self.button_load_fg_color = "#87d2fa"
-        self.bg_color = "#1e1e1e"
         
         self.show = "*"
         self.__file = None
