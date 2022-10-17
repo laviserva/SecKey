@@ -328,11 +328,30 @@ class Window_Add_to_Encripted_File(create_root):
         super().__init__()
         self.show_password_image = os.path.join(self.resources_dir, "show_password.png")
         self.hide_password_image = os.path.join(self.resources_dir, "hide_password.png")
-        
         self.file_path = file_path
+        
+        self.entrys_color = "#2f2f2f"
+        self.style = ttk.Style()
+        print(self.style.theme_names())
+        #self.style.theme_use('default') 
+        self.style.theme_create('combostyle', parent='vista',
+                         settings = {'TCombobox':
+                                     {'configure':
+                                      {'selectbackground': self.button_load_fg_color,
+                                       'fieldbackground': self.entrys_color,
+                                       'background': self.entrys_color,
+                                       'foreground': self.button_load_fg_color,
+                                       'selectBackground': self.button_load_fg_color,
+                                       'selectforeground': self.entrys_color,
+                                       }}}
+                         )
+        # ATTENTION: this applies the new style 'combostyle' to all ttk.Combobox
+        self.style.theme_use('combostyle') 
+        #self.style.map('TCombobox', fieldbackground=[('readonly',self.entrys_color)])
         
     def add_data_to_file(self, window):
         window_add_data = tk.Toplevel(window, bg = self.bg_color)
+        window_add_data.option_add("*TCombobox*Listbox*Background", self.entrys_color)
         window_add_data.title("New Window")
         window_add_data.iconphoto(False, tk.PhotoImage(file=os.path.join(self.resources_dir,"sk.png")))
         window_add_data.geometry(self.__get_geometry(window_add_data))
@@ -356,15 +375,18 @@ class Window_Add_to_Encripted_File(create_root):
         self.create_entry(window, row=2, column=1, columnspand=4)
         self.create_entry(window, row=4, column=1, columnspand=4)
         self.create_entry(window, row=6, column=1, columnspand=4)
-        self.create_buttons(window, text="Ok",    width=10, height=3, fg=self.button_load_fg_color,   row=7, column=1)
-        self.create_buttons(window, text="Clean", width=10, height=3, fg=self.button_create_fg_color, row=7, column=2)
+        Ok_button = self.create_buttons(window, text="Ok",    width=10, height=3, fg=self.button_load_fg_color,   row=7, column=1)
+        Clean_button = self.create_buttons(window, text="Clean", width=10, height=3, fg=self.button_create_fg_color, row=7, column=2)
         self.create_buttons(window, text="Change", fg=self.button_load_fg_color, row=0, column=2)
         self.create_buttons_image(window, self.__image, row=4, column=4)
         self.create_buttons_image(window, self.__image, row=6, column=4)
         
+        self.__on_buttons(Ok_button,self.bg_color, self.button_load_fg_color)
+        self.__on_buttons(Clean_button,self.bg_color, self.button_create_fg_color)
+        
     
     def create_entry(self, window, row, column, columnspand = 1, width=20):
-        return tk.Entry(window, width=width + 3).grid(row=row, column=column, columnspan=columnspand)
+        return tk.Entry(window, width=width + 3, bg=self.entrys_color).grid(row=row, column=column, columnspan=columnspand)
     
     def create_combobox(self, window, options, row, column, columnspand = 1, width=20):
         return ttk.Combobox(window, values=options, width=width).grid(row = row, column=column, columnspan=columnspand)
@@ -403,10 +425,18 @@ class Window_Add_to_Encripted_File(create_root):
         if height: button.config(height=height)
         button.grid(row = row, column=column, sticky=tk.E+tk.W)
         return button
+    
     def __get_geometry(self, window):
         x_coordinates = window.winfo_screenwidth()//2 - self.width//2
         y_coordinates = window.winfo_screenheight()//2 - self.height//2
         return f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}"
+    
+    def __on_buttons(self, button: tk.Button, primary_color: str, secundary_color: str = None) -> None:
+        button.bind("<Enter>", lambda event: self.__on_mouse(button, primary_color, secundary_color))
+        button.bind("<Leave>", lambda event: self.__on_mouse(button, secundary_color, primary_color))
+    
+    def __on_mouse(self, button: tk.Button, fg: str, bg: str) -> None:
+        button.config(bg = bg, fg = fg)
 
 example_dict = {
                 'site 01':{
