@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 
 from enum import Enum, auto
+from turtle import width
 from typing import Callable
 from abc import abstractmethod
 
@@ -372,8 +373,10 @@ class Window_Add_to_Encripted_File(create_root):
         self.__image = resize_image(self.show_password_image)
         
         text = [f"{file_path}", "Site: ", "User: ", "Password: ", "Key: "]
-        rows = [1, 2, 3, 5, 7]
+        rows = [0, 2, 3, 5, 7]
+        entrys_sensured = [5, 7]
         combobox = rows[1]
+        self.file_path_text = rows[0]
         colonspan = [2] + [1 for i in range(len(rows) -1)]
         options = list(self.dicto) + ["otro"]
         option_menu_text = tk.StringVar()
@@ -381,28 +384,37 @@ class Window_Add_to_Encripted_File(create_root):
         self.labels = dict()
         self.combobox = dict()
         self.entrys = dict()
+        self.max_columnspan = 5
         for txt, row, clspn, in zip(text, rows, colonspan):
+            if row == self.file_path_text:
+                button = self.create_labels(window, text=f"File: {txt}", font=14, no_grid = True)
+                button.grid(row = self.file_path_text, column=0, columnspan = 3, pady=(40,20), padx=(40,0))
+                #self.create_labels(window, text=f"File: {txt}", row = 0, column=0, font=14)
+                continue
             btn = self.create_labels(window, text=txt, row=row, column=0, columnspan=clspn)
-            if row == 1:continue
             if row == combobox:
                 self.create_combobox(window, options, row=row, column=1, columnspand=4)
                 continue
-            self.create_entry(window, row=row, column=1, columnspand=4)
+            entry = self.create_entry(window, row=row, column=1, columnspand=4)
+            if row in entrys_sensured:
+                self.entrys[row].config(show="*")
         
-        self.__change_button = self.create_buttons(window, text="Change", fg=self.button_create_fg_color, row=1, column=2, command=self.__open_encrypted_file)
+        self.__change_button = self.create_buttons(window, text="Change", fg=self.button_create_fg_color, command=self.__open_encrypted_file, no_grid=True)
+        self.__change_button.grid(row=self.file_path_text, column=3, pady=(40,20))
         
-        self.create_buttons_image(window, self.__image, row=5, column=4)
-        self.create_buttons_image(window, self.__image, row=7, column=4)
+        self.create_buttons_image(window, self.__image, row=5, column=5)
+        self.create_buttons_image(window, self.__image, row=7, column=5)
         
-        Ok_button = self.create_buttons(window, text="Ok",    width=10, height=3, fg=self.button_create_fg_color,   row=8, column=1, pady=50)
-        Clean_button = self.create_buttons(window, text="Clean", width=10, height=3, fg=self.button_create_fg_color, row=8, column=2, pady=50, command=self.__clean_labels)
+        Ok_button = self.create_buttons(window, text="Ok", width = 3, height=3, fg=self.button_create_fg_color, row=8, column=0, pady=50, columnspan=2)
+        Clean_button = self.create_buttons(window, text="Clean", width = 6, height=3, fg=self.button_create_fg_color, row=8, column=2, columnspan=5, pady=50, 
+                                           padx = (15,0), command=self.__clean_labels)
         self.__on_buttons(self.__change_button, self.bg_color, self.button_create_fg_color)
         self.__on_buttons(Ok_button,self.bg_color, self.button_create_fg_color)
         self.__on_buttons(Clean_button,self.bg_color, self.button_create_fg_color)
         
     
     def create_entry(self, window, row, column, columnspand = 1, width=20):
-        button = tk.Entry(window, width=width + 3, bg=self.entrys_color)
+        button = tk.Entry(window, width=width + 3, bg=self.entrys_color, fg = self.button_create_fg_color)
         self.entrys.update({row: button})
         return button.grid(row=row, column=column, columnspan=columnspand)
     
@@ -411,27 +423,31 @@ class Window_Add_to_Encripted_File(create_root):
         self.combobox.update({row: combobox})
         return combobox.grid(row = row, column=column, columnspan=columnspand)
 
-    def create_labels(self, window: tk.Frame, text: str, row, column, columnspan = 1, rowspan = 1) -> tk.Button:
+    def create_labels(self, window: tk.Frame, text: str, row=0, column=0, columnspan = 1, rowspan = 1, justify=tk.RIGHT, anchor=tk.W, sticky=tk.E, font:int=12, no_grid=False) -> tk.Button:
         button = tk.Label(window,  
                         text= text,
-                        anchor=tk.W,
-                        justify=tk.RIGHT,
+                        anchor=anchor,
+                        justify=justify,
                         fg=self.button_create_fg_color,
-                        bg=self.bg_color
+                        bg=self.bg_color,
+                        font = font
                         )
         self.labels.update({row: button})
-        button.grid(row = row, column=column, columnspan = columnspan, rowspan = rowspan, sticky=tk.E)
+        if no_grid: return button
+        button.grid(row = row, column=column, columnspan = columnspan, rowspan = rowspan, sticky=sticky)
         return button
 
-    def create_buttons_image(self, window, image, row, column):
+    def create_buttons_image(self, window, image, row, column, sticky=tk.W):
         button = tk.Button(window,
                                    image=image,
                                     border = self.border,
                                     bg = self.bg_color,
-                                    activebackground= self.bg_color).grid(row=row, column=column)
+                                    activebackground= self.bg_color).grid(row=row, column=column, sticky=sticky)
         return button
     
-    def create_buttons(self, window: tk.Frame, text: str, fg: str, row: int, width:int= None, height:int= None, column: int = 0, font_size:int = None, pady:int=0, command:Callable = None) -> tk.Button:
+    def create_buttons(self, window: tk.Frame, text: str, fg: str, row: int = 0, column: int = 0, width:int= None, height:int= None,
+                       font_size:int = None, pady:int=0, command:Callable = None, sticky=tk.E+tk.W, no_grid=False, columnspan:int=1,
+                       padx = 0) -> tk.Button:
         if not font_size: font_size = self.font_size_n
         button = tk.Button(window,
                             text=text,
@@ -446,7 +462,8 @@ class Window_Add_to_Encripted_File(create_root):
         if width: button.config(width=width)
         if height: button.config(height=height)
         if command: button.config(command=command)
-        button.grid(row = row, column=column, sticky=tk.E+tk.W, pady=pady)
+        if no_grid: return button
+        button.grid(row = row, column=column, sticky=sticky, pady=pady, columnspan=columnspan, padx=padx)
         return button
     
     def __get_geometry(self, window):
@@ -475,7 +492,7 @@ class Window_Add_to_Encripted_File(create_root):
         name = os.path.basename(filename)
         len_file = 26
         if len(name) > len_file: name = "..." + name[-len_file+3:]
-        self.labels[1].config(text= name)
+        self.labels[self.file_path_text].config(text= f"File: {name}")
 
 class encript_data:
     def __init__(self) -> None:
