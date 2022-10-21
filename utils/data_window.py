@@ -385,23 +385,25 @@ class Window_Add_to_Encripted_File(create_root):
         self.combobox = dict()
         self.entrys = dict()
         self.max_columnspan = 5
-        for txt, row, clspn, in zip(text, rows, colonspan):
-            if row == self.file_path_text:
-                button = self.create_labels(window, text=f"File: {txt}", font=14, no_grid = True)
-                button.grid(row = self.file_path_text, column=0, columnspan = 3, pady=(40,20), padx=(40,0))
-                #self.create_labels(window, text=f"File: {txt}", row = 0, column=0, font=14)
-                continue
-            btn = self.create_labels(window, text=txt, row=row, column=0, columnspan=clspn)
-            if row == combobox:
-                self.create_combobox(window, options, row=row, column=1, columnspand=4)
-                continue
-            entry = self.create_entry(window, row=row, column=1, columnspand=4)
-            if row in entrys_sensured:
-                self.entrys[row].config(show="*")
+                
+        button = self.create_labels(window, text=f"File: {file_path}", font=14, no_grid = True)
+        button.grid(row = 0, column=0, columnspan = 3, pady=(40,20), padx=(40,0))
+        
+        btn = self.create_labels(window, text="Site: ", row=2, column=0, columnspan=1)
+        combobox = self.create_combobox(window, options, row=2, column=1, columnspand=4)
         
         self.__change_button = self.create_buttons(window, text="Change", fg=self.button_create_fg_color, command=self.__open_encrypted_file, no_grid=True)
         self.__change_button.grid(row=self.file_path_text, column=3, pady=(40,20))
         
+        btn = self.create_labels(window, text="User: ", row=3, column=0, columnspan=1)
+        entry = self.create_entry(window, row=3, column=1, columnspand=4)
+        
+        btn = self.create_labels(window, text= "Password: ", row=5, column=0, columnspan=1)
+        entry = self.create_entry(window, row=5, column=1, columnspand=4, sensure=True)
+
+        btn = self.create_labels(window, text="Key: ", row=7, column=0, columnspan=1)
+        entry = self.create_entry(window, row=7, column=1, columnspand=4, sensure=True)
+
         self.create_buttons_image(window, self.__image, row=5, column=5)
         self.create_buttons_image(window, self.__image, row=7, column=5)
         
@@ -413,8 +415,9 @@ class Window_Add_to_Encripted_File(create_root):
         self.__on_buttons(Clean_button,self.bg_color, self.button_create_fg_color)
         
     
-    def create_entry(self, window, row, column, columnspand = 1, width=20):
+    def create_entry(self, window, row, column, columnspand = 1, width=20, sensure=None):
         button = tk.Entry(window, width=width + 3, bg=self.entrys_color, fg = self.button_create_fg_color)
+        if sensure:button.config(show="*")
         self.entrys.update({row: button})
         return button.grid(row=row, column=column, columnspan=columnspand)
     
