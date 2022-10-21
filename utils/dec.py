@@ -5,14 +5,14 @@ import os
 from Crypto.Cipher import AES
 
 class EaD:
+    p_sitio = "//s"
+    p_description = "//d"
+    p_user = "//u"
+    p_password = "//p"
+    p_token = "//t"
+    div_word = b"xaelko"
     def __init__(self) -> None:
         self.__characters = "~@#_^*%.+:;=" + string.ascii_letters + string.digits
-        self.__p_sitio = "//s"
-        self.__p_description = "//d"
-        self.__p_user = "//u"
-        self.__p_password = "//p"
-        self.__p_token = "//t"
-        self.__div_word = b"xaelko"
         
     def __AES_decript(self, key: bytes, ciphertext: bytes, nonce: bytes, tag:bytes) -> bytes:
         cipher = AES.new(key, AES.MODE_EAX, nonce)
@@ -48,7 +48,7 @@ class EaD:
         
         encripted_data = []
         test_data = [dat[:3] for dat in data]
-        if self.__p_sitio not in test_data or self.__p_user not in test_data or self.__p_password not in test_data:
+        if self.p_sitio not in test_data or self.p_user not in test_data or self.p_password not in test_data:
             raise Exception(ValueError(f"Input data must have the prefix //s, //u, //p (site, user and passwords) written."))
         del(test_data)
         
@@ -56,17 +56,17 @@ class EaD:
             new_line = item.rstrip()
             prefix = new_line[:3]
             sufix = new_line[3:].strip()
-            if prefix == self.__p_sitio:
-                salt_string = self.__salt_and_encript(self.__p_sitio + sufix, key) + self.__div_word
+            if prefix == self.p_sitio:
+                salt_string = self.__salt_and_encript(self.p_sitio + sufix, key) + self.div_word
                 encripted_data.append(salt_string)
-            elif prefix == self.__p_user:
-                salt_string = self.__salt_and_encript(self.__p_user + sufix, key) + self.__div_word
+            elif prefix == self.p_user:
+                salt_string = self.__salt_and_encript(self.p_user + sufix, key) + self.div_word
                 encripted_data.append(salt_string)
-            elif prefix == self.__p_password:
-                salt_string = self.__salt_and_encript(self.__p_password + sufix, key) + self.__div_word
+            elif prefix == self.p_password:
+                salt_string = self.__salt_and_encript(self.p_password + sufix, key) + self.div_word
                 encripted_data.append(salt_string)
-            elif prefix == self.__p_token:
-                salt_string = self.__salt_and_encript(self.__p_token + sufix, key) + self.__div_word
+            elif prefix == self.p_token:
+                salt_string = self.__salt_and_encript(self.p_token + sufix, key) + self.div_word
                 encripted_data.append(salt_string)
 
         with open(encripted_file, "ab") as f:
@@ -124,17 +124,17 @@ class EaD:
                 prefix = new_line[:3]
                 sufix = new_line[3:].strip()
                 
-                if prefix == self.__p_sitio:
-                    salt_string = self.__salt_and_encript(self.__p_sitio + sufix, key) + self.__div_word
+                if prefix == self.p_sitio:
+                    salt_string = self.__salt_and_encript(self.p_sitio + sufix, key) + self.div_word
                     encripted_data.append(salt_string)
-                elif prefix == self.__p_user:
-                    salt_string = self.__salt_and_encript(self.__p_user + sufix, key) + self.__div_word
+                elif prefix == self.p_user:
+                    salt_string = self.__salt_and_encript(self.p_user + sufix, key) + self.div_word
                     encripted_data.append(salt_string)
-                elif prefix == self.__p_password:
-                    salt_string = self.__salt_and_encript(self.__p_password + sufix, key) + self.__div_word
+                elif prefix == self.p_password:
+                    salt_string = self.__salt_and_encript(self.p_password + sufix, key) + self.div_word
                     encripted_data.append(salt_string)
-                elif prefix == self.__p_token:
-                    salt_string = self.__salt_and_encript(self.__p_token + sufix, key) + self.__div_word
+                elif prefix == self.p_token:
+                    salt_string = self.__salt_and_encript(self.p_token + sufix, key) + self.div_word
                     encripted_data.append(salt_string)
                     
         with open(encripted_file, "wb") as f:
@@ -147,7 +147,7 @@ class EaD:
         out = []
         with open(encripted_file, "rb") as f:
             lines = f.read()
-            words = lines.split(self.__div_word)
+            words = lines.split(self.div_word)
             for word in words:
                 if word == b"":
                     continue
@@ -175,7 +175,7 @@ class EaD:
                 prefix = new_line[:3]
                 sufix = new_line[3:]
 
-                if prefix == self.__p_sitio:
+                if prefix == self.p_sitio:
                     sitio = sufix
                     if sitio not in sites:
                         num_users = 0
@@ -185,15 +185,15 @@ class EaD:
                     token = ""
                     continue
 
-                elif prefix == self.__p_user:
+                elif prefix == self.p_user:
                     user = sufix
                     num_users += 1
                     continue
 
-                elif prefix == self.__p_password:
+                elif prefix == self.p_password:
                     password = sufix
 
-                elif prefix == self.__p_token:
+                elif prefix == self.p_token:
                     token = sufix
                 else:
                     continue
@@ -211,7 +211,7 @@ class EaD:
         return data_dict
 
     def random_password(self, size: int = 32) -> str:
-        out = self.__p_password
+        out = self.p_password
         for _ in range(size):
             out += random.choice(self.__characters)
         return out
@@ -229,7 +229,7 @@ class EaD:
             prefix = new_line[1] + new_line[3:5]
             sufix = new_line[5:-3] + new_line[-2]
             
-            if prefix == self.__p_sitio:
+            if prefix == self.p_sitio:
                 sitio = sufix
                 if sitio not in sites:
                     num_users = 0
@@ -239,14 +239,14 @@ class EaD:
                 token = ""
                 continue
 
-            elif prefix == self.__p_user:
+            elif prefix == self.p_user:
                 user = sufix
                 continue
 
-            elif prefix == self.__p_password:
+            elif prefix == self.p_password:
                 password = sufix
 
-            elif prefix == self.__p_token:
+            elif prefix == self.p_token:
                 token = sufix
             else:
                 continue
