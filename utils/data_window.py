@@ -334,7 +334,6 @@ class Window_Add_to_Encripted_File(create_root):
         
         self.entrys_color = "#2f2f2f"
         self.style = ttk.Style()
-        print(self.style.theme_names())
         #self.style.theme_use('default') 
         self.style.theme_create('combostyle', parent='vista',
                          settings = {'TCombobox':
