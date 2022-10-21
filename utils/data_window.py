@@ -324,6 +324,8 @@ class create_scrollbar(create_windows_abs):
         self.canvas.bind_all("<MouseWheel>", self.__set_mousewheel)
 
 class Window_Add_to_Encripted_File(create_root):
+    HIDE = auto()
+    SHOW = auto()
     def __init__(self, file_path) -> None:
         super().__init__()
         self.show_password_image = os.path.join(self.resources_dir, "show_password.png")
@@ -385,28 +387,28 @@ class Window_Add_to_Encripted_File(create_root):
         self.entrys = dict()
         self.max_columnspan = 5
                 
-        button = self.create_labels(window, text=f"File: {file_path}", font=14, no_grid = True)
+        button = self.create_labels(window, text=f"File: {file_path}", font_size=13, no_grid = True)
         button.grid(row = 0, column=0, columnspan = 3, pady=(40,20), padx=(40,0))
+        self.__change_button = self.create_buttons(window, text="Change", fg=self.button_create_fg_color, command=self.__open_encrypted_file, no_grid=True, font_size=13)
+        self.__change_button.grid(row=self.file_path_text, column=3, pady=(40,20))
         
         btn = self.create_labels(window, text="Site: ", row=2, column=0, columnspan=1)
         combobox = self.create_combobox(window, options, row=2, column=1, columnspand=4)
         
-        self.__change_button = self.create_buttons(window, text="Change", fg=self.button_create_fg_color, command=self.__open_encrypted_file, no_grid=True)
-        self.__change_button.grid(row=self.file_path_text, column=3, pady=(40,20))
-        
         btn = self.create_labels(window, text="User: ", row=3, column=0, columnspan=1)
-        entry = self.create_entry(window, row=3, column=1, columnspand=4)
+        entry,_ = self.create_entry(window, row=3, column=1, columnspand=4)
         
         btn = self.create_labels(window, text= "Password: ", row=5, column=0, columnspan=1)
-        entry = self.create_entry(window, row=5, column=1, columnspand=4, sensure=True)
+        self.__password_entry = self.create_entry(window, row=5, column=1, columnspand=4, sensure=True)
+        password_show_hide_img = self.create_buttons_image(window, self.__image, row=5, column=5, command=lambda: self.__hide_show_password(self.__password_entry))
+        print(type(self.__password_entry))
 
         btn = self.create_labels(window, text="Key: ", row=7, column=0, columnspan=1)
-        entry = self.create_entry(window, row=7, column=1, columnspand=4, sensure=True)
-
-        self.create_buttons_image(window, self.__image, row=5, column=5)
-        self.create_buttons_image(window, self.__image, row=7, column=5)
-        
-        Ok_button = self.create_buttons(window, text="Ok", width = 3, height=3, fg=self.button_create_fg_color, row=8, column=0, pady=50, columnspan=2)
+        self.__key_entry = self.create_entry(window, row=7, column=1, columnspand=4, sensure=True)
+        key_show_hide_img = self.create_buttons_image(window, self.__image, row=7, column=5, command=lambda: self.__hide_show_password(self.__key_entry))
+        print(type(self.__key_entry))
+        Ok_button = self.create_buttons(window, text="Ok", width = 3, height=3, fg=self.button_create_fg_color, row=8, column=0, pady=50, columnspan=2, 
+                                        command=self.__ok_button)
         Clean_button = self.create_buttons(window, text="Clean", width = 6, height=3, fg=self.button_create_fg_color, row=8, column=2, columnspan=5, pady=50, 
                                            padx = (15,0), command=self.__clean_labels)
         self.__on_buttons(self.__change_button, self.bg_color, self.button_create_fg_color)
@@ -416,36 +418,45 @@ class Window_Add_to_Encripted_File(create_root):
     
     def create_entry(self, window, row, column, columnspand = 1, width=20, sensure=None):
         button = tk.Entry(window, width=width + 3, bg=self.entrys_color, fg = self.button_create_fg_color)
-        if sensure:button.config(show="*")
+        if sensure:
+            button.config(show="*")
+            state = self.HIDE
+        else:
+            state = self.SHOW
         self.entrys.update({row: button})
-        return button.grid(row=row, column=column, columnspan=columnspand)
+        button.grid(row=row, column=column, columnspan=columnspand)
+        return list([button, state])
     
     def create_combobox(self, window, options, row, column, columnspand = 1, width=20):
         combobox = ttk.Combobox(window, values=options, width=width)
         self.combobox.update({row: combobox})
-        return combobox.grid(row = row, column=column, columnspan=columnspand)
+        combobox.grid(row = row, column=column, columnspan=columnspand)
+        return combobox
 
-    def create_labels(self, window: tk.Frame, text: str, row=0, column=0, columnspan = 1, rowspan = 1, justify=tk.RIGHT, anchor=tk.W, sticky=tk.E, font:int=12, no_grid=False) -> tk.Button:
+    def create_labels(self, window: tk.Frame, text: str, row=0, column=0, columnspan = 1, rowspan = 1, justify=tk.RIGHT, anchor=tk.W, sticky=tk.E, font_size:int=12, no_grid=False) -> tk.Button:
         button = tk.Label(window,  
                         text= text,
                         anchor=anchor,
                         justify=justify,
                         fg=self.button_create_fg_color,
                         bg=self.bg_color,
-                        font = font
+                        font=(self.font, font_size)
                         )
         self.labels.update({row: button})
         if no_grid: return button
         button.grid(row = row, column=column, columnspan = columnspan, rowspan = rowspan, sticky=sticky)
         return button
 
-    def create_buttons_image(self, window, image, row, column, sticky=tk.W):
+    def create_buttons_image(self, window, image, row, column, sticky=tk.W, command = None):
         button = tk.Button(window,
                                    image=image,
                                     border = self.border,
                                     bg = self.bg_color,
-                                    activebackground= self.bg_color).grid(row=row, column=column, sticky=sticky)
-        return button
+                                    activebackground= self.bg_color)
+        button.grid(row=row, column=column, sticky=sticky)
+        if command: button.config(command=command)
+        state = self.HIDE
+        return list([button, state])
     
     def create_buttons(self, window: tk.Frame, text: str, fg: str, row: int = 0, column: int = 0, width:int= None, height:int= None,
                        font_size:int = None, pady:int=0, command:Callable = None, sticky=tk.E+tk.W, no_grid=False, columnspan:int=1,
@@ -473,6 +484,10 @@ class Window_Add_to_Encripted_File(create_root):
         y_coordinates = window.winfo_screenheight()//2 - self.height//2 - 50
         return f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}"
     
+    def __ok_button(self,):
+        print(self.__key_entry.get())
+        print(self.__password_entry.get())
+    
     def __on_buttons(self, button: tk.Button, primary_color: str, secundary_color: str = None) -> None:
         button.bind("<Enter>", lambda event: self.__on_mouse(button, primary_color, secundary_color))
         button.bind("<Leave>", lambda event: self.__on_mouse(button, secundary_color, primary_color))
@@ -495,6 +510,20 @@ class Window_Add_to_Encripted_File(create_root):
         len_file = 26
         if len(name) > len_file: name = "..." + name[-len_file+3:]
         self.labels[self.file_path_text].config(text= f"File: {name}")
+    
+    def __hide_show_password(self, entry):
+        text = entry[0].get()
+        state = entry[1]
+        
+        if state == self.HIDE:
+            entry[0].config(show="")
+            entry[1] = self.SHOW
+        elif state == self.SHOW:
+            entry[0].config(show = "*")
+            entry[1] = self.HIDE
+        
+        #if text == len(text)*"*":
+            
 
 class encript_data:
     def __init__(self) -> None:
