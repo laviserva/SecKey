@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import END, ttk, messagebox, filedialog
 
 from enum import Enum, auto
 from turtle import width
@@ -333,6 +333,9 @@ class Window_Add_to_Encripted_File(create_root):
         self.file_path = file_path
         
         self.first_item = True
+        self.__min_lenght = 7
+        
+        self.__encript = encript_data()
         
         self.entrys_color = "#2f2f2f"
         self.style = ttk.Style()
@@ -386,6 +389,8 @@ class Window_Add_to_Encripted_File(create_root):
         self.combobox = dict()
         self.entrys = dict()
         self.max_columnspan = 5
+        
+        tk.Label(window, text="", bg=self.bg_color, width=2).grid(row = 0, column=9)
                 
         button = self.create_labels(window, text=f"File: {file_path}", font_size=13, no_grid = True)
         button.grid(row = 0, column=0, columnspan = 3, pady=(40,20), padx=(40,0))
@@ -401,13 +406,12 @@ class Window_Add_to_Encripted_File(create_root):
         btn = self.create_labels(window, text= "Password: ", row=5, column=0, columnspan=1)
         self.__password_entry = self.create_entry(window, row=5, column=1, columnspand=4, sensure=True)
         password_show_hide_img = self.create_buttons_image(window, self.__image, row=5, column=5, command=lambda: self.__hide_show_password(self.__password_entry))
-        print(type(self.__password_entry))
 
         btn = self.create_labels(window, text="Key: ", row=7, column=0, columnspan=1)
         self.__key_entry = self.create_entry(window, row=7, column=1, columnspand=4, sensure=True)
         key_show_hide_img = self.create_buttons_image(window, self.__image, row=7, column=5, command=lambda: self.__hide_show_password(self.__key_entry))
-        print(type(self.__key_entry))
-        Ok_button = self.create_buttons(window, text="Ok", width = 3, height=3, fg=self.button_create_fg_color, row=8, column=0, pady=50, columnspan=2, 
+        Ok_button = self.create_buttons(window, text="Ok", height=2, fg=self.button_create_fg_color, row=8, column=0, pady=(30,0),
+                                        sticky="nesw", columnspan = 10,
                                         command=lambda: self.__ok_button(
                                             window,
                                             file_path,
@@ -417,11 +421,15 @@ class Window_Add_to_Encripted_File(create_root):
                                             self.__key_entry[0]
                                             )
                                         )
-        Clean_button = self.create_buttons(window, text="Clean", width = 6, height=3, fg=self.button_create_fg_color, row=8, column=2, columnspan=5, pady=50, 
-                                           padx = (15,0), command=self.__clean_labels)
+        Clean_button = self.create_buttons(window, text="Clean", height=2, fg=self.button_create_fg_color, row=9, column=0, columnspan=10, 
+                                           command=self.__clean_labels)
+        generate_password_button = self.create_buttons(window, text="Generate Password", height=2, fg=self.button_create_fg_color, row=10, column=0, columnspan=10, 
+                                           command=self.__generate_password)
+        
         self.__on_buttons(self.__change_button, self.bg_color, self.button_create_fg_color)
         self.__on_buttons(Ok_button,self.bg_color, self.button_create_fg_color)
         self.__on_buttons(Clean_button,self.bg_color, self.button_create_fg_color)
+        self.__on_buttons(generate_password_button,self.bg_color, self.button_create_fg_color)
         
     
     def create_entry(self, window, row, column, columnspand = 1, width=20, sensure=None):
@@ -487,34 +495,58 @@ class Window_Add_to_Encripted_File(create_root):
         button.grid(row = row, column=column, sticky=sticky, pady=pady, columnspan=columnspan, padx=padx)
         return button
     
+    def __generate_password(self) -> None:
+        passw = self.__encript.ead.random_password()
+        show_pw = passw[3:]
+        self.__password_entry[0].delete(0, END)
+        self.__password_entry[0].insert(0, show_pw)
+    
     def __get_geometry(self, window):
         x_coordinates = window.winfo_screenwidth()//2 - self.width//2 - 50
         y_coordinates = window.winfo_screenheight()//2 - self.height//2 - 50
         return f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}"
+    
+    def __hide_show_password(self, entry) -> None:
+        text = entry[0].get()
+        state = entry[1]
+        
+        if state == self.HIDE:
+            entry[0].config(show="")
+            entry[1] = self.SHOW
+        elif state == self.SHOW:
+            entry[0].config(show = "*")
+            entry[1] = self.HIDE
     
     def __ok_button(self,window, file: str, site: ttk.Combobox, user: tk.Entry, password: tk.Entry, key: tk.Entry):
         site = site.get()
         user = user.get()
         password = password.get()
         key = key.get()
-        encript = encript_data()
-        print(key)
+        key = key.encode()
+        
         if (file and site and user and password and key) == "":
             messagebox.showinfo(message="All fields must be completed", title="Warning")
             return
-        if len(password) > 17:
+        if len(site) < self.__min_lenght or len(user) < self.__min_lenght or len(password) < self.__min_lenght or len(key) < self.__min_lenght:
+            messagebox.showinfo(message=f"All fields must have at least {self.__min_lenght} characters", title="Warning")
+            return
+        if  self.__min_lenght < len(password) > 17:
             messagebox.showinfo(message="Password field lenght has been exceded.\nMax 16 characters", title="Warning")
             return
         
-        assert encript.Verify(file, key)
+        if self.__encript.Verify(file, key):
+            messagebox.showinfo(message="Saved", title="Ok")
+        else:
+            messagebox.showinfo(message="Incorrect Password", title="Ok")
+            return -1
         
         data = [
-            encript.ead.p_sitio + site,
-            encript.ead.p_user  + user,
-            encript.ead.p_password + site
+            self.__encript.ead.p_sitio + site,
+            self.__encript.ead.p_user  + user,
+            self.__encript.ead.p_password + site
         ]
-        key = key.encode()
-        #encript.ead.add_data_to_file(data=data, encripted_file=file, key=key)
+        self.__encript.ead.add_data_to_file(data=data, encripted_file=file, key=key)
+        
     
     def __on_buttons(self, button: tk.Button, primary_color: str, secundary_color: str = None) -> None:
         button.bind("<Enter>", lambda event: self.__on_mouse(button, primary_color, secundary_color))
@@ -537,27 +569,18 @@ class Window_Add_to_Encripted_File(create_root):
         name = os.path.basename(filename)
         len_file = 26
         if len(name) > len_file: name = "..." + name[-len_file+3:]
-        self.labels[self.file_path_text].config(text= f"File: {name}")
-    
-    def __hide_show_password(self, entry) -> None:
-        text = entry[0].get()
-        state = entry[1]
-        
-        if state == self.HIDE:
-            entry[0].config(show="")
-            entry[1] = self.SHOW
-        elif state == self.SHOW:
-            entry[0].config(show = "*")
-            entry[1] = self.HIDE
-            
+        self.labels[self.file_path_text].config(text= f"File: {name}")      
 
 class encript_data:
     def __init__(self) -> None:
         self.ead = EaD()
     
     def Verify(self, file: str, key:bytes):
-        self.ead.load_and_decript_file(file, key)
-        return True
+        try:
+            self.ead.load_and_decript_file(file, key)
+            return True
+        except:
+            return False
         
 
 example_dict = {
@@ -583,3 +606,12 @@ B.default_gui()
 A.default_gui(win)
 #ex = Window_Add_to_Encripted_File(file_path= file_path)
 A.loop()
+
+""" # Example for encode and decode interaction
+A = EaD()
+print(dir(A))
+password = b"1234567890123456"
+A.encript_file("file.txt", password)
+data = A.load_and_decript_file("file_encripted.bin", password)
+print(data)
+"""
