@@ -1,3 +1,4 @@
+import copy
 import string
 import random
 import os
@@ -22,7 +23,7 @@ class EaD:
     def __AES_encript(self, string: str, key:bytes) -> tuple[bytes, bytes, bytes]:
         encript_cipher = AES.new(key, AES.MODE_EAX)
         nonce = encript_cipher.nonce
-        etxt, tag = encript_cipher.encrypt_and_digest(string)
+        etxt, tag = encript_cipher.encrypt_and_digest(string.encode())
         return etxt + tag + nonce
     
     def add_data_to_file(self, data:list[str], encripted_file: str, key: bytes) -> None:
@@ -68,9 +69,22 @@ class EaD:
             elif prefix == self.p_token:
                 salt_string = self.__salt_and_encript(self.p_token + sufix, key) + self.div_word
                 encripted_data.append(salt_string)
-
+        
         with open(encripted_file, "ab") as f:
             f.writelines(encripted_data)
+    
+    @staticmethod
+    def comprobe_duplicates(dicto: dict) -> dict:
+        new_dicto = copy.deepcopy(dicto)
+        for site in dicto:
+            users = []
+            for key in dicto[site]:
+                user = new_dicto[site][key]["user"]
+                if user in users:
+                    del(new_dicto[site][key])
+                    continue
+                users.append(user)
+        return new_dicto
 
     def encript_file(self, file: str, key:bytes=None) -> None:
         """encript_file encripts and organize a file.txt using AES algorithm.
@@ -159,7 +173,7 @@ class EaD:
                 except:
                     raise (Exception(ValueError("MAC check failed. The introduced key is incorrect")))
                 out.append(decript)
-        return self.__remove_salt(out)
+        return self.comprobe_duplicates(self.__remove_salt(out))
             
     def load_data(self, filename: str) -> list[str]:
         sitio = ""
@@ -208,7 +222,7 @@ class EaD:
                         if user is data_dict[sitio][number]["user"]:
                             data_dict[sitio][number]["token"] = token
                             break
-        return data_dict
+        return self.comprobe_duplicates(data_dict)
 
     def random_password(self, size: int = 32) -> str:
         out = self.p_password
