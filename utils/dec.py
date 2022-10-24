@@ -75,6 +75,7 @@ class EaD:
     
     @staticmethod
     def comprobe_duplicates(dicto: dict) -> dict:
+        # shift key number if duplicate
         new_dicto = copy.deepcopy(dicto)
         for site in dicto:
             users = []
@@ -224,7 +225,7 @@ class EaD:
                             break
         return self.comprobe_duplicates(data_dict)
 
-    def random_password(self, size: int = 32) -> str:
+    def random_password(self, size: int = 16) -> str:
         out = self.p_password
         for _ in range(size):
             out += random.choice(self.__characters)
