@@ -527,7 +527,7 @@ class Window_Add_to_Encripted_File(create_root):
         if (file and site and user and password and key) == "":
             messagebox.showinfo(message="All fields must be completed", title="Warning")
             return
-        if len(site) < self.__min_lenght or len(user) < self.__min_lenght or len(password) < self.__min_lenght or len(key) < self.__min_lenght:
+        if len(user) < self.__min_lenght or len(password) < self.__min_lenght or len(key) < self.__min_lenght:
             messagebox.showinfo(message=f"All fields must have at least {self.__min_lenght} characters", title="Warning")
             return
         if  self.__min_lenght < len(password) > 17:
@@ -595,6 +595,10 @@ example_dict = {
                     1: {'user': 'user5', 'password': 'pass5'}}}
 
 file_path = r"file_encripted.bin"
+decode = EaD()
+key = b"1234567890123456"
+example_dict = decode.load_and_decript_file(file_path, key)
+print(example_dict)
 A = create_root()#data_window(example_dict, file_path)
 create_windows_abs.dicto = example_dict
 root_window = A.create_main_window()
