@@ -77,8 +77,7 @@ class EaD:
     def clean_encripted_file(self, file: str, key: bytes) -> list:
         data = self.load_and_decript_file(file, key)
         data = self.comprobe_duplicates(data)
-        
-        print(data)
+        data = self.encript_data(file, key, data)
         return data
     
     @staticmethod
@@ -103,41 +102,56 @@ class EaD:
                 #print("\n",new_dicto)
         return new_dicto
     
+    def __encript_data_low_memory(self, file:str, key:bytes, data:dict) -> None:
+        with open(file, "wb") as f:
+            for site in data:
+                site_encripted = self.__salt_and_encript(self.p_sitio + str(site), key) + self.div_word
+                f.write(site_encripted)
+                for num_user in data[site]:
+                    user = data[site][num_user]["user"]
+                    password = data[site][num_user]["password"]
+                    f.write(self.__salt_and_encript(self.p_user + user, key) + self.div_word)
+                    f.write(self.__salt_and_encript(self.p_password + password, key) + self.div_word)
+                
+                    if "token" in data[site][num_user].keys():
+                        token = data[site][num_user]["token"]
+                        f.write(self.__salt_and_encript(self.p_token + token, key) + self.div_word)
+        print("The file is very big. None is returned")
+
     def encript_data(self, file:str, key:bytes, data:dict) -> None:
         """Encript all data in a dict in a file.bin using a key"""
-        encripted_data = []
         capability = len(data) > self.__max_capability
+        if capability:
+            return self.__encript_data_low_memory(file, key, data)
+        encripted_data = []
+        no_encripted = []
         for site in data:
+            no_encripted.append(self.p_sitio + site)
+            salt_string = self.__salt_and_encript(self.p_sitio + site, key) + self.div_word
+            encripted_data.append(salt_string)
             for num_user in data[site]:
                 user = data[site][num_user]["user"]
                 password = data[site][num_user]["password"]
-                token = data[site][num_user]["token"]
+                salt_string = self.__salt_and_encript(self.p_user + user, key) + self.div_word
+                encripted_data.append(salt_string)
+                no_encripted.append(self.p_user + user)
+                salt_string = self.__salt_and_encript(self.p_password + password, key) + self.div_word
+                encripted_data.append(salt_string)
+                no_encripted.append(self.p_password + password)
                 
-        
-        with open(file, "r", encoding = 'utf-8') as f:
-            for line in f:
-                new_line = line.rstrip()
-                prefix = new_line[:3]
-                sufix = new_line[3:].strip()
+                if "token" in data[site][num_user].keys():
+                    token = data[site][num_user]["token"]
+                    salt_string = self.__salt_and_encript(self.p_token + token, key) + self.div_word
+                    encripted_data.append(salt_string)
                 
-                if prefix == self.p_sitio:
-                    salt_string = self.__salt_and_encript(self.p_sitio + sufix, key) + self.div_word
-                    encripted_data.append(salt_string)
-                elif prefix == self.p_user:
-                    salt_string = self.__salt_and_encript(self.p_user + sufix, key) + self.div_word
-                    encripted_data.append(salt_string)
-                elif prefix == self.p_password:
-                    salt_string = self.__salt_and_encript(self.p_password + sufix, key) + self.div_word
-                    encripted_data.append(salt_string)
-                elif prefix == self.p_token:
-                    salt_string = self.__salt_and_encript(self.p_token + sufix, key) + self.div_word
-                    encripted_data.append(salt_string)
-                    
         print("Removing file")
-        os.remove(file_path)
+        os.remove(file)
+        print("Saving cleaned file")
         
         with open(file, "wb") as f:
             f.writelines(encripted_data)
+        #print(self.load_and_decript_file(file, key))
+        return self.load_and_decript_file(file, key)
 
     def encript_file(self, file: str, key:bytes) -> None:
         """encript_file encripts and organize a file.txt using AES algorithm.
@@ -295,7 +309,6 @@ class EaD:
             new_line = item.rstrip()
             prefix = new_line[1] + new_line[3:5]
             sufix = new_line[5:-3] + new_line[-2]
-            
             if prefix == self.p_sitio:
                 sitio = sufix
                 if sitio not in sites:
@@ -308,17 +321,19 @@ class EaD:
 
             elif prefix == self.p_user:
                 user = sufix
+                password = ""
                 continue
 
             elif prefix == self.p_password:
                 password = sufix
+                token = ""
 
             elif prefix == self.p_token:
                 token = sufix
             else:
                 continue
             
-            if data_dict.get(sitio) is None and token == "" and user != "" and password != "":
+            if data_dict.get(sitio) is None and user != "" and password != "" and token == "":
                 data_dict[sitio] = {1 : {"user": user, "password": password}}
 
             elif data_dict.get(sitio) and token == "" and user != "" and password != "":
@@ -335,9 +350,3 @@ class EaD:
     def __salt_and_encript(self, string: str, key) -> tuple[bytes, bytes, bytes]:
         out = key.decode()[0] + string[0] + key.decode()[1] + string[1:-1] + key.decode()[-2] + string[-1] + key.decode()[-1]
         return self.__AES_encript(out, key)
-
-file_path = r"file_encripted.bin"
-decode = EaD()
-key = b"1234567890123456"
-example_dict = decode.clean_encripted_file(file_path, key)
-print(len(example_dict))
