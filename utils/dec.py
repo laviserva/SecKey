@@ -12,6 +12,7 @@ class EaD:
     p_password = "//p"
     p_token = "//t"
     div_word = b"xaelko"
+    __max_capability = 50
     def __init__(self) -> None:
         self.__characters = "~@#_^*%.+:;=" + string.ascii_letters + string.digits
         
@@ -73,21 +74,72 @@ class EaD:
         with open(encripted_file, "ab") as f:
             f.writelines(encripted_data)
     
+    def clean_encripted_file(self, file: str, key: bytes) -> list:
+        data = self.load_and_decript_file(file, key)
+        data = self.comprobe_duplicates(data)
+        
+        print(data)
+        return data
+    
     @staticmethod
     def comprobe_duplicates(dicto: dict) -> dict:
-        # shift key number if duplicate
         new_dicto = copy.deepcopy(dicto)
         for site in dicto:
             users = []
+            move_key = False
+            cont = 0
             for key in dicto[site]:
                 user = new_dicto[site][key]["user"]
                 if user in users:
                     del(new_dicto[site][key])
+                    move_key = True
+                    cont += 1
                     continue
+                if move_key:
+                    new_dicto[site][key-cont] = new_dicto[site][key]
+                    move_key = False
+                    del(new_dicto[site][key])
                 users.append(user)
+                #print("\n",new_dicto)
         return new_dicto
+    
+    def encript_data(self, file:str, key:bytes, data:dict) -> None:
+        """Encript all data in a dict in a file.bin using a key"""
+        encripted_data = []
+        capability = len(data) > self.__max_capability
+        for site in data:
+            for num_user in data[site]:
+                user = data[site][num_user]["user"]
+                password = data[site][num_user]["password"]
+                token = data[site][num_user]["token"]
+                
+        
+        with open(file, "r", encoding = 'utf-8') as f:
+            for line in f:
+                new_line = line.rstrip()
+                prefix = new_line[:3]
+                sufix = new_line[3:].strip()
+                
+                if prefix == self.p_sitio:
+                    salt_string = self.__salt_and_encript(self.p_sitio + sufix, key) + self.div_word
+                    encripted_data.append(salt_string)
+                elif prefix == self.p_user:
+                    salt_string = self.__salt_and_encript(self.p_user + sufix, key) + self.div_word
+                    encripted_data.append(salt_string)
+                elif prefix == self.p_password:
+                    salt_string = self.__salt_and_encript(self.p_password + sufix, key) + self.div_word
+                    encripted_data.append(salt_string)
+                elif prefix == self.p_token:
+                    salt_string = self.__salt_and_encript(self.p_token + sufix, key) + self.div_word
+                    encripted_data.append(salt_string)
+                    
+        print("Removing file")
+        os.remove(file_path)
+        
+        with open(file, "wb") as f:
+            f.writelines(encripted_data)
 
-    def encript_file(self, file: str, key:bytes=None) -> None:
+    def encript_file(self, file: str, key:bytes) -> None:
         """encript_file encripts and organize a file.txt using AES algorithm.
         Args:
             Input:
@@ -155,7 +207,7 @@ class EaD:
         with open(encripted_file, "wb") as f:
             f.writelines(encripted_data)
     
-    def load_and_decript_file(self, encripted_file: str, key: bytes) -> list:
+    def load_and_decript_file(self, encripted_file: str, key: bytes) -> dict:
         if os.path.isfile(encripted_file) is False:
             raise Exception(FileNotFoundError("File must exist"))
         
@@ -283,3 +335,9 @@ class EaD:
     def __salt_and_encript(self, string: str, key) -> tuple[bytes, bytes, bytes]:
         out = key.decode()[0] + string[0] + key.decode()[1] + string[1:-1] + key.decode()[-2] + string[-1] + key.decode()[-1]
         return self.__AES_encript(out, key)
+
+file_path = r"file_encripted.bin"
+decode = EaD()
+key = b"1234567890123456"
+example_dict = decode.clean_encripted_file(file_path, key)
+print(len(example_dict))
