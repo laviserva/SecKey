@@ -1,9 +1,9 @@
 import os
 import tkinter as tk
 from tkinter import END, ttk, messagebox, filedialog
+from PIL import ImageTk
 
 from enum import Enum, auto
-from turtle import width
 from typing import Callable
 from abc import abstractmethod
 
@@ -125,7 +125,7 @@ class create_root(create_windows_abs):
             self.Buttons_win[i][0][j].bind('<Double-Button-1>', lambda event, i=i: self.__contract_gui_num_users(i))
         self.__update_main_buttons()
             
-    def __hide_show_password(self, i, j):
+    def __hide_show_password(self, i: int, j: int) -> None:
         key = self.Buttons_win[i][1][0]
         text = self.Buttons_win[i][0][j]["text"].split()[-1]
         text_len = len(text)
@@ -136,7 +136,7 @@ class create_root(create_windows_abs):
             password += "*"*text_len
         self.Buttons_win[i][0][j].config(text = password)
     
-    def __contract_gui_num_users(self, i: int):
+    def __contract_gui_num_users(self, i: int) -> None:
         grid_cont = self.Buttons_win[i][2][0]
         last_grid = self.Buttons_win[i][2][1]
         key = self.Buttons_win[i][1][0]
@@ -212,7 +212,7 @@ class create_root(create_windows_abs):
 class create_menu(create_windows_abs):
     width: int = 50
     height: int = 400
-    default_bg_color: str = "#2f2f2f"#"#3a7ff6"
+    default_bg_color: str = "#2f2f2f" #"#3a7ff6"
     highlighted_fg_color: str = "#000000"
     highlighted_bg_color: str = "#ff7777"
     default_fg_color: str = "#000000"
@@ -252,7 +252,8 @@ class create_menu(create_windows_abs):
         button.place(relx=relx, rely=rely)
         return button
         
-    def create_main_window(self, root: tk.Frame) -> tk.Frame:
+    def create_main_window(self, root: tk.Tk) -> tk.Frame:
+        self.root = root
         self.menu = tk.Frame(root,
                              width=self.width,
                              height=self.height,
@@ -261,9 +262,9 @@ class create_menu(create_windows_abs):
         self.menu.pack(side=tk.LEFT ,fill=tk.BOTH)
         return self.menu
     
-    def default_gui(self) -> None:
+    def default_gui(self, root: tk.Tk) -> None:
         if self.Buttons_menu == []:
-            functions = [self.test] + [lambda menu=self.menu: self.ex.add_data_to_file(menu)] + [self.test]*3
+            functions = [self.test] + [lambda menu=self.menu, root=root: self.ex.add_data_to_file(menu, root)] + [self.test]*3
             for funct, img in zip(functions, self.all_imgs):
                 button = self.create_buttons(self.menu, img, funct, 0, 0.1)
                 button.pack()
@@ -313,13 +314,13 @@ class create_scrollbar(create_windows_abs):
         self.update_scrollbar()
         return self.win, self.canvas, self.scrollbar
     
-    def __set_mousewheel(self, event):
+    def __set_mousewheel(self, event) -> None:
         self.canvas.yview_scroll(-1 * int((event.delta / 120)), "units")
     
     def __update_scrollbar(self, event) -> None:
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
     
-    def update_scrollbar(self):
+    def update_scrollbar(self) -> None:
         self.win.bind("<Configure>", self.__update_scrollbar)
         self.canvas.bind_all("<MouseWheel>", self.__set_mousewheel)
 
@@ -354,18 +355,18 @@ class Window_Add_to_Encripted_File(create_root):
         self.style.theme_use('combostyle') 
         #self.style.map('TCombobox', fieldbackground=[('readonly',self.entrys_color)])
         
-    def add_data_to_file(self, window):
-        # Create window delete previous one -> self.root line 88
+    def add_data_to_file(self, window: tk.Frame, root: tk.Tk) -> None:
         window_add_data = tk.Toplevel(window, bg = self.bg_color)
+        root.withdraw()
         window_add_data.resizable(width=False, height=False)
         window_add_data.option_add("*TCombobox*Listbox*Background", self.entrys_color)
         window_add_data.title("New Window")
         window_add_data.iconphoto(False, tk.PhotoImage(file=os.path.join(self.resources_dir,"sk.png")))
         window_add_data.geometry(self.__get_geometry(window_add_data))
         tk.Label(window_add_data, bg = self.bg_color).grid(row= 0, column = 0, pady=15) # blank space
-        return self.create_main_window(window_add_data)
+        return self.create_main_window(window_add_data, root)
 
-    def __clean_labels(self):
+    def __clean_labels(self) -> None:
         for key in self.entrys:
             text = tk.StringVar()
             text.set("")
@@ -373,7 +374,7 @@ class Window_Add_to_Encripted_File(create_root):
         for key in self.combobox:
             self.combobox[key]["textvariable"] = text
         
-    def create_main_window(self, window):
+    def create_main_window(self, window: tk.Frame, root: tk.Tk) -> None:
         self.__image = resize_image(self.show_password_image)
         
         text = [f"{file_path}", "Site: ", "User: ", "Password: ", "Key: "]
@@ -413,7 +414,6 @@ class Window_Add_to_Encripted_File(create_root):
         Ok_button = self.create_buttons(window, text="Ok", height=2, fg=self.button_create_fg_color, row=8, column=0, pady=(30,0),
                                         sticky="nesw", columnspan = 10,
                                         command=lambda: self.__ok_button(
-                                            window,
                                             file_path,
                                             combobox,
                                             entry,
@@ -430,9 +430,16 @@ class Window_Add_to_Encripted_File(create_root):
         self.__on_buttons(Ok_button,self.bg_color, self.button_create_fg_color)
         self.__on_buttons(Clean_button,self.bg_color, self.button_create_fg_color)
         self.__on_buttons(generate_password_button,self.bg_color, self.button_create_fg_color)
+
+        #window.protocol("WM_DELETE_WINDOW", lambda window, root: self.__on_closing_TopLevel(window, root))
+        #window.protocol
+        window.wm_protocol("WM_DELETE_WINDOW", lambda root=root, window=window: self.__on_closing_TopLevel(root, window))
         
+    def __on_closing_TopLevel(self, root: tk.Tk, window: tk.Toplevel) -> None:
+        root.deiconify()
+        window.destroy()
     
-    def create_entry(self, window, row, column, columnspand = 1, width=20, sensure=None):
+    def create_entry(self, window: tk.Toplevel, row: int, column: int, columnspand = 1, width=20, sensure=None) -> list:
         button = tk.Entry(window, width=width + 3, bg=self.entrys_color, fg = self.button_create_fg_color)
         if sensure:
             button.config(show="*")
@@ -443,13 +450,14 @@ class Window_Add_to_Encripted_File(create_root):
         button.grid(row=row, column=column, columnspan=columnspand)
         return list([button, state])
     
-    def create_combobox(self, window, options, row, column, columnspand = 1, width=20):
+    def create_combobox(self, window: tk.Toplevel, options: list, row: int, column: int, columnspand:int = 1, width:int =20) -> ttk.Combobox:
         combobox = ttk.Combobox(window, values=options, width=width)
         self.combobox.update({row: combobox})
         combobox.grid(row = row, column=column, columnspan=columnspand)
         return combobox
 
-    def create_labels(self, window: tk.Frame, text: str, row=0, column=0, columnspan = 1, rowspan = 1, justify=tk.RIGHT, anchor=tk.W, sticky=tk.E, font_size:int=12, no_grid=False) -> tk.Button:
+    def create_labels(self, window: tk.Frame, text: str, row:int=0, column:int=0, columnspan = 1,
+                      rowspan = 1, justify=tk.RIGHT, anchor=tk.W, sticky=tk.E, font_size:int=12, no_grid=False) -> tk.Button:
         button = tk.Label(window,  
                         text= text,
                         anchor=anchor,
@@ -463,7 +471,8 @@ class Window_Add_to_Encripted_File(create_root):
         button.grid(row = row, column=column, columnspan = columnspan, rowspan = rowspan, sticky=sticky)
         return button
 
-    def create_buttons_image(self, window, image, row, column, sticky=tk.W, command = None):
+    def create_buttons_image(self, window: tk.Toplevel, image: ImageTk.PhotoImage,
+                             row: int, column: int, sticky:tk=tk.W, command:Callable = None) -> list:
         button = tk.Button(window,
                                    image=image,
                                     border = self.border,
@@ -501,12 +510,12 @@ class Window_Add_to_Encripted_File(create_root):
         self.__password_entry[0].delete(0, END)
         self.__password_entry[0].insert(0, show_pw)
     
-    def __get_geometry(self, window):
-        x_coordinates = window.winfo_screenwidth()//2 - self.width//2 - 50
-        y_coordinates = window.winfo_screenheight()//2 - self.height//2 - 50
+    def __get_geometry(self, window) -> str:
+        x_coordinates = window.winfo_screenwidth()//2 - self.width//2
+        y_coordinates = window.winfo_screenheight()//2 - self.height//2
         return f"{str(self.width)}x{str(self.height)}+{x_coordinates}+{y_coordinates}"
     
-    def __hide_show_password(self, entry) -> None:
+    def __hide_show_password(self, entry: tk.Entry) -> None:
         text = entry[0].get()
         state = entry[1]
         
@@ -517,7 +526,7 @@ class Window_Add_to_Encripted_File(create_root):
             entry[0].config(show = "*")
             entry[1] = self.HIDE
     
-    def __ok_button(self,window, file: str, site: ttk.Combobox, user: tk.Entry, password: tk.Entry, key: tk.Entry):
+    def __ok_button(self, file: str, site: ttk.Combobox, user: tk.Entry, password: tk.Entry, key: tk.Entry) -> None:
         site = site.get()
         user = user.get()
         password = password.get()
@@ -526,13 +535,13 @@ class Window_Add_to_Encripted_File(create_root):
         
         if (file and site and user and password and key) == "":
             messagebox.showinfo(message="All fields must be completed", title="Warning")
-            return
+            return 0
         if len(user) < self.__min_lenght or len(password) < self.__min_lenght or len(key) < self.__min_lenght:
             messagebox.showinfo(message=f"All fields must have at least {self.__min_lenght} characters", title="Warning")
-            return
+            return 0
         if  self.__min_lenght < len(password) > 17:
             messagebox.showinfo(message="Password field lenght has been exceded.\nMax 16 characters", title="Warning")
-            return
+            return 0
         
         if self.__encript.Verify(file, key):
             messagebox.showinfo(message="Saved", title="Ok")
@@ -545,8 +554,8 @@ class Window_Add_to_Encripted_File(create_root):
             self.__encript.ead.p_user  + user,
             self.__encript.ead.p_password + site
         ]
-        self.__encript.ead.add_data_to_file(data=data, encripted_file=file, key=key)
-        
+        #self.__encript.ead.add_data_to_file(data=data, encripted_file=file, key=key)
+        self.__clean_labels()
     
     def __on_buttons(self, button: tk.Button, primary_color: str, secundary_color: str = None) -> None:
         button.bind("<Enter>", lambda event: self.__on_mouse(button, primary_color, secundary_color))
@@ -575,41 +584,29 @@ class encript_data:
     def __init__(self) -> None:
         self.ead = EaD()
     
-    def Verify(self, file: str, key:bytes):
+    def Verify(self, file: str, key:bytes) -> bool:
         try:
             self.ead.load_and_decript_file(file, key)
             return True
         except:
             return False
-        
-
-example_dict = {
-                'site 01':{
-                    1:{'user': 'user1', 'password': 'pass1', 'token': 'token1'},
-                    2: {'user': 'user3', 'password': 'pass3', 'token': 'token3'}},
-                'site 02':{
-                    1: {'user': 'user2', 'password': 'pass2'}},
-                'site 04':{
-                    1: {'user': 'user4', 'password': 'pass4'}}, 
-                'site 10': {
-                    1: {'user': 'user5', 'password': 'pass5'}}}
 
 file_path = r"file_encripted.bin"
 decode = EaD()
 key = b"1234567890123456"
 example_dict = decode.load_and_decript_file(file_path, key)
 print(example_dict)
-A = create_root()#data_window(example_dict, file_path)
+root = create_root()
 create_windows_abs.dicto = example_dict
-root_window = A.create_main_window()
+root_window = root.create_main_window()
 B = create_menu()
 menu_window = B.create_main_window(root_window)
 scrollbar = create_scrollbar()
 win, canvas, scrollbar_root = scrollbar.create_scrollbar(root_window)
-B.default_gui()
-A.default_gui(win)
-#ex = Window_Add_to_Encripted_File(file_path= file_path)
-A.loop()
+B.default_gui(root_window)
+root.default_gui(win)
+
+root.loop()
 
 """ # Example for encode and decode interaction
 A = EaD()
