@@ -38,6 +38,11 @@ class start_app(EaD):
         
         self.show = "*"
         self.__file = None
+    
+    def __create_encrypted_file(self) -> None:
+        """Create encrypted file and add data to it"""
+        # use data_window
+        pass
         
     def __on_closing(self) -> None:
         if tk.messagebox.askokcancel("Quit", "Do you want to quit?"):
@@ -100,7 +105,8 @@ class start_app(EaD):
                                         bg = self.bg_color,
                                         activebackground = self.button_create_fg_color,
                                         activeforeground = self.bg_color,
-                                        border = 0
+                                        border = 0,
+                                        command = self.__create_encrypted_file
                                         )
         create_file_button.bind("<Enter>", lambda event: self.__on_enter_mouse(create_file_button,self.button_create_fg_color, self.bg_color))
         create_file_button.bind("<Leave>", lambda event: self.__on_leave_mouse(create_file_button,self.button_create_fg_color, self.bg_color))

@@ -351,11 +351,11 @@ class Window_Add_to_Encripted_File(create_root):
                                        'selectforeground': self.entrys_color,
                                        }}}
                          )
-        # ATTENTION: this applies the new style 'combostyle' to all ttk.Combobox
         self.style.theme_use('combostyle') 
         #self.style.map('TCombobox', fieldbackground=[('readonly',self.entrys_color)])
         
     def add_data_to_file(self, window):
+        # Create window delete previous one -> self.root line 88
         window_add_data = tk.Toplevel(window, bg = self.bg_color)
         window_add_data.resizable(width=False, height=False)
         window_add_data.option_add("*TCombobox*Listbox*Background", self.entrys_color)
