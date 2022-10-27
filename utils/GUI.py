@@ -14,6 +14,6 @@ def main():
     if vad.state == Verify_password_state.RETURN_TO_MAIN:
         main()
     if vad.state == Verify_password_state.DESTROYED and code is not None:
-        run_gui_load_file_with_key(file, )
+        run_gui_load_file_with_key(file, code)
 
 main()
