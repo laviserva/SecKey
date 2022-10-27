@@ -590,29 +590,30 @@ class encript_data:
             return True
         except:
             return False
+        
+def run_gui_load_file_with_key(file_path: str, key: bytes) -> None:
+    decode = EaD()
+    example_dict = decode.load_and_decript_file(file_path, key)
+    
+    # Root app
+    root = create_root()
+    create_windows_abs.dicto = example_dict
+    root_window = root.create_main_window()
+    
+    # Create Menu bar in root
+    menu = create_menu()
+    menu_window = menu.create_main_window(root_window)
+    
+    # Create Scrollbar
+    scrollbar = create_scrollbar()
+    win, canvas, scrollbar_root = scrollbar.create_scrollbar(root_window)
+    
+    # Create GUI
+    root.default_gui(win)
+    menu.default_gui(root_window)
 
+    root.loop()
+    
 file_path = r"file_encripted.bin"
-decode = EaD()
 key = b"1234567890123456"
-example_dict = decode.load_and_decript_file(file_path, key)
-print(example_dict)
-root = create_root()
-create_windows_abs.dicto = example_dict
-root_window = root.create_main_window()
-B = create_menu()
-menu_window = B.create_main_window(root_window)
-scrollbar = create_scrollbar()
-win, canvas, scrollbar_root = scrollbar.create_scrollbar(root_window)
-B.default_gui(root_window)
-root.default_gui(win)
-
-root.loop()
-
-""" # Example for encode and decode interaction
-A = EaD()
-print(dir(A))
-password = b"1234567890123456"
-A.encript_file("file.txt", password)
-data = A.load_and_decript_file("file_encripted.bin", password)
-print(data)
-"""
+run_gui_load_file_with_key(file_path, key)
