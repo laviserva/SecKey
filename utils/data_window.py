@@ -614,6 +614,7 @@ def run_gui_load_file_with_key(file_path: str, key: bytes) -> None:
 
     root.loop()
     
-file_path = r"file_encripted.bin"
-key = b"1234567890123456"
-run_gui_load_file_with_key(file_path, key)
+if __name__ == "__main__":
+    file_path = r"file_encripted.bin"
+    key = b"1234567890123456"
+    run_gui_load_file_with_key(file_path, key)
