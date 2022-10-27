@@ -14,6 +14,7 @@ class Verify_password_state(Enum):
 class verify_password(EaD):
     image = None
     def __init__(self) -> None:
+        self.__out = None
         super().__init__()
         self.width  = 300
         self.height = 400
@@ -44,7 +45,10 @@ class verify_password(EaD):
     
     def __on_closing(self) -> None:
         if tk.messagebox.askokcancel("Quit", "Do you want to quit?"):
-            self.win.destroy()
+            self.__closing()
+    
+    def __closing(self) -> None:
+        self.win.destroy()
         self.state = Verify_password_state.DESTROYED
         
     def __on_enter(self, button: tk.Button, bg: str, fg: str) -> None:
@@ -162,13 +166,14 @@ class verify_password(EaD):
     def Validation(self, filename: str) -> None:
         self.file = filename
         self.__create_windows()
+        return self.__out
         
     def __load_password(self, file, key_entry: tk.Entry) -> None:
         self.__entry_value = key_entry.get().encode()
         if file == None or file[-4:] != ".bin":
             raise Exception(ValueError("Error in file"))
-        out = self.load_and_decript_file(file, self.__entry_value)
-        print(out)
+        self.__out = self.load_and_decript_file(file, self.__entry_value)
+        self.__closing()
 
 #A = verify_password()
 #A.Validation("file_encripted.bin")
