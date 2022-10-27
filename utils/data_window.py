@@ -219,7 +219,7 @@ class create_menu(create_windows_abs):
     
     def __init__(self) -> None:
         super().__init__()
-        self.ex = Window_Add_to_Encripted_File(file_path= file_path)
+        self.ex = Window_Add_to_Encripted_File(file_path= self.file_path)
         self.all_buttons_states = [
             buttons_state.MENU,
             buttons_state.ADD,
@@ -377,7 +377,7 @@ class Window_Add_to_Encripted_File(create_root):
     def create_main_window(self, window: tk.Frame, root: tk.Tk) -> None:
         self.__image = resize_image(self.show_password_image)
         
-        text = [f"{file_path}", "Site: ", "User: ", "Password: ", "Key: "]
+        text = [f"{self.file_path}", "Site: ", "User: ", "Password: ", "Key: "]
         rows = [0, 2, 3, 5, 7]
         entrys_sensured = [5, 7]
         combobox = rows[1]
@@ -393,7 +393,7 @@ class Window_Add_to_Encripted_File(create_root):
         
         tk.Label(window, text="", bg=self.bg_color, width=2).grid(row = 0, column=9)
                 
-        button = self.create_labels(window, text=f"File: {file_path}", font_size=13, no_grid = True)
+        button = self.create_labels(window, text=f"File: {self.file_path}", font_size=13, no_grid = True)
         button.grid(row = 0, column=0, columnspan = 3, pady=(40,20), padx=(40,0))
         self.__change_button = self.create_buttons(window, text="Change", fg=self.button_create_fg_color, command=self.__open_encrypted_file, no_grid=True, font_size=13)
         self.__change_button.grid(row=self.file_path_text, column=3, pady=(40,20))
@@ -414,7 +414,7 @@ class Window_Add_to_Encripted_File(create_root):
         Ok_button = self.create_buttons(window, text="Ok", height=2, fg=self.button_create_fg_color, row=8, column=0, pady=(30,0),
                                         sticky="nesw", columnspan = 10,
                                         command=lambda: self.__ok_button(
-                                            file_path,
+                                            self.file_path,
                                             combobox,
                                             entry,
                                             self.__password_entry[0],
@@ -576,7 +576,7 @@ class Window_Add_to_Encripted_File(create_root):
 
         self.__file = filename
         name = os.path.basename(filename)
-        len_file = 26
+        len_file = 20
         if len(name) > len_file: name = "..." + name[-len_file+3:]
         self.labels[self.file_path_text].config(text= f"File: {name}")      
 
@@ -591,13 +591,15 @@ class encript_data:
         except:
             return False
         
-def run_gui_load_file_with_key(file_path: str, key: bytes) -> None:
-    decode = EaD()
-    example_dict = decode.load_and_decript_file(file_path, key)
+def run_gui_load_file_with_key(file_path: str, dicto: dict, key: bytes=None) -> None:
+    file_path = os.path.basename(file_path)
+    #decode = EaD()
+    #example_dict = decode.load_and_decript_file(file_path, key)
     
     # Root app
     root = create_root()
-    create_windows_abs.dicto = example_dict
+    create_windows_abs.dicto = dicto
+    create_windows_abs.file_path = file_path
     root_window = root.create_main_window()
     
     # Create Menu bar in root
