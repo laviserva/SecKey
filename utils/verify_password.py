@@ -110,6 +110,7 @@ class verify_password(EaD):
         key_entry = tk.Entry(self.win,
                              width=31,
                              textvariable = key_entry_var,
+                             bg=self.bg_color,
                              show=self.__show)
         key_entry.place(relx=0.56-0.08, rely=self.__place_starting+self.__place_step*3, anchor=CENTER)
         

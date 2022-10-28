@@ -383,7 +383,7 @@ class Window_Add_to_Encripted_File(create_root):
         combobox = rows[1]
         self.file_path_text = rows[0]
         colonspan = [2] + [1 for i in range(len(rows) -1)]
-        options = list(self.dicto) + ["otro"]
+        options = list(self.dicto)
         option_menu_text = tk.StringVar()
         option_menu_text.set(options[-1])
         self.labels = dict()
@@ -418,7 +418,7 @@ class Window_Add_to_Encripted_File(create_root):
                                             combobox,
                                             entry,
                                             self.__password_entry[0],
-                                            self.__key_entry[0]
+                                            self.__key_entry[0], root
                                             )
                                         )
         Clean_button = self.create_buttons(window, text="Clean", height=2, fg=self.button_create_fg_color, row=9, column=0, columnspan=10, 
@@ -526,7 +526,7 @@ class Window_Add_to_Encripted_File(create_root):
             entry[0].config(show = "*")
             entry[1] = self.HIDE
     
-    def __ok_button(self, file: str, site: ttk.Combobox, user: tk.Entry, password: tk.Entry, key: tk.Entry) -> None:
+    def __ok_button(self, file: str, site: ttk.Combobox, user: tk.Entry, password: tk.Entry, key: tk.Entry, root: tk.Tk) -> None:
         site = site.get()
         user = user.get()
         password = password.get()
@@ -549,13 +549,17 @@ class Window_Add_to_Encripted_File(create_root):
             messagebox.showinfo(message="Incorrect Password", title="Ok")
             return -1
         
-        data = [
-            self.__encript.ead.p_sitio + site,
-            self.__encript.ead.p_user  + user,
-            self.__encript.ead.p_password + site
-        ]
+        data = {
+            "site": site,
+            "user": user,
+            "password": password,
+        }
         #self.__encript.ead.add_data_to_file(data=data, encripted_file=file, key=key)
         self.__clean_labels()
+        root.destroy()
+        self.__encript.ead.delete_data_from_encripted_file(file, key, data)
+        #run_gui_load_file_with_key(file_path, key)
+        
     
     def __on_buttons(self, button: tk.Button, primary_color: str, secundary_color: str = None) -> None:
         button.bind("<Enter>", lambda event: self.__on_mouse(button, primary_color, secundary_color))
@@ -615,8 +619,3 @@ def run_gui_load_file_with_key(file_path: str, dicto: dict, key: bytes=None) -> 
     menu.default_gui(root_window)
 
     root.loop()
-    
-if __name__ == "__main__":
-    file_path = r"file_encripted.bin"
-    key = b"1234567890123456"
-    run_gui_load_file_with_key(file_path, key)
