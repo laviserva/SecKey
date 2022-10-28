@@ -6,7 +6,7 @@ import os
 from Crypto.Cipher import AES
 
 class EaD:
-    p_sitio = "//s"
+    p_site = "//s"
     p_description = "//d"
     p_user = "//u"
     p_password = "//p"
@@ -50,7 +50,7 @@ class EaD:
         
         encripted_data = []
         test_data = [dat[:3] for dat in data]
-        if self.p_sitio not in test_data or self.p_user not in test_data or self.p_password not in test_data:
+        if self.p_site not in test_data or self.p_user not in test_data or self.p_password not in test_data:
             raise Exception(ValueError(f"Input data must have the prefix //s, //u, //p (site, user and passwords) written."))
         del(test_data)
         
@@ -58,8 +58,8 @@ class EaD:
             new_line = item.rstrip()
             prefix = new_line[:3]
             sufix = new_line[3:].strip()
-            if prefix == self.p_sitio:
-                salt_string = self.__salt_and_encript(self.p_sitio + sufix, key) + self.div_word
+            if prefix == self.p_site:
+                salt_string = self.__salt_and_encript(self.p_site + sufix, key) + self.div_word
                 encripted_data.append(salt_string)
             elif prefix == self.p_user:
                 salt_string = self.__salt_and_encript(self.p_user + sufix, key) + self.div_word
@@ -102,10 +102,45 @@ class EaD:
                 #print("\n",new_dicto)
         return new_dicto
     
+    def delete_data_from_encripted_file(self, file: str, key:bytes, data: dict):
+        """data must be user password and some relevant information related with it.
+        The key will be verified. Then will encript the data, match the encripted data with the encripted file and removed from it.
+        
+        example:
+        data = {"user": user, "password": password}
+        delete_data_from_encripted_file("example.bin", b"1234567890123456", data)
+        
+        gets nonce tag and encript text then compare with the delete data you want.
+        """
+        if not self.__verify_key(file, key):
+            return -1
+        out = []
+        
+        site = data["site"]
+        user = data["user"]
+        password = data["password"]
+        print(self.p_user + user)
+        encripted_site = self.__salt_and_encript(self.p_site + site, key) + self.div_word
+        encripted_user = self.__salt_and_encript(self.p_user + user, key) + self.div_word
+        print(encripted_user)
+        print(str(encripted_user))
+        encripted_pass = self.__salt_and_encript(self.p_password + password, key) + self.div_word
+        
+        #out.append(encripted_site.decode())
+        out.append(encripted_user)
+        #out.append(encripted_pass.decode())
+    
+        if "token" in data.keys():
+            token = data["token"]
+            encripted_token = self.__salt_and_encript(self.p_token + token, key) + self.div_word
+            #out.append(encripted_token.decode())
+        
+        out = b"".join(out)
+    
     def __encript_data_low_memory(self, file:str, key:bytes, data:dict) -> None:
         with open(file, "wb") as f:
             for site in data:
-                site_encripted = self.__salt_and_encript(self.p_sitio + str(site), key) + self.div_word
+                site_encripted = self.__salt_and_encript(self.p_site + str(site), key) + self.div_word
                 f.write(site_encripted)
                 for num_user in data[site]:
                     user = data[site][num_user]["user"]
@@ -124,20 +159,16 @@ class EaD:
         if capability:
             return self.__encript_data_low_memory(file, key, data)
         encripted_data = []
-        no_encripted = []
         for site in data:
-            no_encripted.append(self.p_sitio + site)
-            salt_string = self.__salt_and_encript(self.p_sitio + site, key) + self.div_word
+            salt_string = self.__salt_and_encript(self.p_site + site, key) + self.div_word
             encripted_data.append(salt_string)
             for num_user in data[site]:
                 user = data[site][num_user]["user"]
                 password = data[site][num_user]["password"]
                 salt_string = self.__salt_and_encript(self.p_user + user, key) + self.div_word
                 encripted_data.append(salt_string)
-                no_encripted.append(self.p_user + user)
                 salt_string = self.__salt_and_encript(self.p_password + password, key) + self.div_word
                 encripted_data.append(salt_string)
-                no_encripted.append(self.p_password + password)
                 
                 if "token" in data[site][num_user].keys():
                     token = data[site][num_user]["token"]
@@ -205,8 +236,8 @@ class EaD:
                 prefix = new_line[:3]
                 sufix = new_line[3:].strip()
                 
-                if prefix == self.p_sitio:
-                    salt_string = self.__salt_and_encript(self.p_sitio + sufix, key) + self.div_word
+                if prefix == self.p_site:
+                    salt_string = self.__salt_and_encript(self.p_site + sufix, key) + self.div_word
                     encripted_data.append(salt_string)
                 elif prefix == self.p_user:
                     salt_string = self.__salt_and_encript(self.p_user + sufix, key) + self.div_word
@@ -256,7 +287,7 @@ class EaD:
                 prefix = new_line[:3]
                 sufix = new_line[3:]
 
-                if prefix == self.p_sitio:
+                if prefix == self.p_site:
                     sitio = sufix
                     if sitio not in sites:
                         num_users = 0
@@ -309,7 +340,7 @@ class EaD:
             new_line = item.rstrip()
             prefix = new_line[1] + new_line[3:5]
             sufix = new_line[5:-3] + new_line[-2]
-            if prefix == self.p_sitio:
+            if prefix == self.p_site:
                 sitio = sufix
                 if sitio not in sites:
                     num_users = 0
@@ -349,4 +380,19 @@ class EaD:
 
     def __salt_and_encript(self, string: str, key) -> tuple[bytes, bytes, bytes]:
         out = key.decode()[0] + string[0] + key.decode()[1] + string[1:-1] + key.decode()[-2] + string[-1] + key.decode()[-1]
+        print(out)
         return self.__AES_encript(out, key)
+    
+    def __verify_key(self, file: str, key: bytes):
+        with open(file, "rb") as f:
+            lines = f.read()
+            word = lines.split(self.div_word)[0]
+            etxt = word[:-32]
+            tag = word[-32:-16]
+            nonce = word[-16:]
+            try:
+                decript = self.__AES_decript(key, etxt, nonce, tag).decode()
+                print("Verified Correctly")
+                return True
+            except:
+                return False
