@@ -114,29 +114,37 @@ class EaD:
         """
         if not self.__verify_key(file, key):
             return -1
+        
+        data_keys = list(data.keys())
+        data_keys = [data[k] for k in data_keys]
+        
         out = []
-        
-        site = data["site"]
-        user = data["user"]
-        password = data["password"]
-        print(self.p_user + user)
-        encripted_site = self.__salt_and_encript(self.p_site + site, key) + self.div_word
-        encripted_user = self.__salt_and_encript(self.p_user + user, key) + self.div_word
-        print(encripted_user)
-        print(str(encripted_user))
-        encripted_pass = self.__salt_and_encript(self.p_password + password, key) + self.div_word
-        
-        #out.append(encripted_site.decode())
-        out.append(encripted_user)
-        #out.append(encripted_pass.decode())
-    
-        if "token" in data.keys():
-            token = data["token"]
-            encripted_token = self.__salt_and_encript(self.p_token + token, key) + self.div_word
-            #out.append(encripted_token.decode())
-        
-        out = b"".join(out)
-    
+        with open(file, "rb") as f:
+            lines = f.read()
+            print(lines)
+            words = lines.split(self.div_word)
+            for word in words:
+                if word == b"":
+                    continue
+                etxt = word[:-32]
+                tag = word[-32:-16]
+                nonce = word[-16:]
+                decript = self.__AES_decript(key, etxt, nonce, tag).decode()
+                _, decript = self.__delete_salt(decript)
+                if decript in data_keys:
+                    print(f"{decript} - {word + self.div_word}")
+                    print(word + self.div_word in lines)
+                    out.append(word)
+                    lines = lines.replace(word, b"")
+                    data_keys.remove(decript)
+                if data_keys == []:
+                    print(lines)
+                    break
+        with open("del.bin", "wb") as f:
+            f.write(lines)
+        #add self.__clean method for deleting useless things
+        print(self.load_and_decript_file("del.bin", key))
+                
     def __encript_data_low_memory(self, file:str, key:bytes, data:dict) -> None:
         with open(file, "wb") as f:
             for site in data:
@@ -181,7 +189,6 @@ class EaD:
         
         with open(file, "wb") as f:
             f.writelines(encripted_data)
-        #print(self.load_and_decript_file(file, key))
         return self.load_and_decript_file(file, key)
 
     def encript_file(self, file: str, key:bytes) -> None:
@@ -327,6 +334,11 @@ class EaD:
         for _ in range(size):
             out += random.choice(self.__characters)
         return out
+    
+    def __delete_salt(self, str: str) -> str:
+        prefix = str[1] + str[3:5]
+        sufix = str[5:-3] + str[-2]
+        return prefix, sufix
 
     def __remove_salt(self, salty_list: list) -> dict:
         sites = []
@@ -338,8 +350,7 @@ class EaD:
         
         for item in salty_list:
             new_line = item.rstrip()
-            prefix = new_line[1] + new_line[3:5]
-            sufix = new_line[5:-3] + new_line[-2]
+            prefix, sufix  = self.__delete_salt(new_line)
             if prefix == self.p_site:
                 sitio = sufix
                 if sitio not in sites:
@@ -390,9 +401,9 @@ class EaD:
             etxt = word[:-32]
             tag = word[-32:-16]
             nonce = word[-16:]
-            try:
-                decript = self.__AES_decript(key, etxt, nonce, tag).decode()
-                print("Verified Correctly")
-                return True
-            except:
-                return False
+        try:
+            decript = self.__AES_decript(key, etxt, nonce, tag).decode()
+            print("Verified Correctly")
+            return True
+        except:
+            return False
