@@ -10,10 +10,10 @@ def main():
     file = gui.init_window()
     if gui.state == start_app_state.CLOSED:
         sys.exit()
-    code = vad.Validation(file)
+    data = vad.Validation(file)
     if vad.state == Verify_password_state.RETURN_TO_MAIN:
         main()
-    if vad.state == Verify_password_state.DESTROYED and code is not None:
-        run_gui_load_file_with_key(file, code)
+    if vad.state == Verify_password_state.DESTROYED and data is not None:
+        run_gui_load_file_with_key(file, data)
 
 main()
