@@ -102,7 +102,7 @@ class EaD:
                 #print("\n",new_dicto)
         return new_dicto
     
-    def delete_data_from_encripted_file(self, file: str, key:bytes, data: dict):
+    def delete_data_from_encripted_file(self, file: str, key:bytes, data: dict) -> None:
         """data must be user password and some relevant information related with it.
         The key will be verified. Then will encript the data, match the encripted data with the encripted file and removed from it.
         
@@ -121,7 +121,6 @@ class EaD:
         out = []
         with open(file, "rb") as f:
             lines = f.read()
-            print(lines)
             words = lines.split(self.div_word)
             for word in words:
                 if word == b"":
@@ -132,18 +131,15 @@ class EaD:
                 decript = self.__AES_decript(key, etxt, nonce, tag).decode()
                 _, decript = self.__delete_salt(decript)
                 if decript in data_keys:
-                    print(f"{decript} - {word + self.div_word}")
-                    print(word + self.div_word in lines)
                     out.append(word)
                     lines = lines.replace(word, b"")
                     data_keys.remove(decript)
                 if data_keys == []:
-                    print(lines)
                     break
-        with open("del.bin", "wb") as f:
+        with open(file, "wb") as f:
             f.write(lines)
         #add self.__clean method for deleting useless things
-        print(self.load_and_decript_file("del.bin", key))
+        print(self.load_and_decript_file(file, key))
                 
     def __encript_data_low_memory(self, file:str, key:bytes, data:dict) -> None:
         with open(file, "wb") as f:
