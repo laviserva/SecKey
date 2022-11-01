@@ -99,10 +99,9 @@ class EaD:
                     move_key = False
                     del(new_dicto[site][key])
                 users.append(user)
-                #print("\n",new_dicto)
         return new_dicto
     
-    def delete_data_from_encripted_file(self, file: str, key:bytes, data: dict) -> None:
+    def delete_data_from_encripted_file(self, file: str, key:bytes, data: dict, test:bool = False) -> None:
         """data must be user password and some relevant information related with it.
         The key will be verified. Then will encript the data, match the encripted data with the encripted file and removed from it.
         
@@ -136,10 +135,13 @@ class EaD:
                     data_keys.remove(decript)
                 if data_keys == []:
                     break
-        with open(file, "wb") as f:
-            f.write(lines)
+        if test:
+            print(f"Testing function - {file} will be intact")
+        else:
+            with open(file, "wb") as f:
+                f.write(lines) 
         #add self.__clean method for deleting useless things
-        print(self.load_and_decript_file(file, key))
+        return self.load_and_decript_file(file, key)
                 
     def __encript_data_low_memory(self, file:str, key:bytes, data:dict) -> None:
         with open(file, "wb") as f:
@@ -398,8 +400,8 @@ class EaD:
             tag = word[-32:-16]
             nonce = word[-16:]
         try:
-            decript = self.__AES_decript(key, etxt, nonce, tag).decode()
-            print("Verified Correctly")
+            self.__AES_decript(key, etxt, nonce, tag).decode()
+            print("File verified")
             return True
         except:
             return False
