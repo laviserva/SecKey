@@ -664,7 +664,7 @@ class Window_Delete_Encripted_Data(create_root):
         btn = self.create_labels(window, text="Key: ", row=7, column=0, columnspan=1)
         self.__key_entry = self.create_entry(window, row=7, column=1, columnspand=4, sensure=True)
         key_show_hide_img = self.create_buttons_image(window, self.__image, row=7, column=5, command=lambda: self.__hide_show_password(self.__key_entry))
-        Ok_button = self.create_buttons(window, text="Ok", height=2, fg=self.button_create_fg_color, row=8, column=0, pady=(30,0),
+        Ok_button = self.create_buttons(window, text="Ok", height=4, fg=self.button_create_fg_color, row=8, column=0, pady=(30,0),
                                         sticky="nesw", columnspan = 10,
                                         command=lambda: self.__ok_button(
                                             self.file_path,
@@ -673,15 +673,13 @@ class Window_Delete_Encripted_Data(create_root):
                                             self.__key_entry[0], root
                                             )
                                         )
-        Clean_button = self.create_buttons(window, text="Clean", height=2, fg=self.button_create_fg_color, row=9, column=0, columnspan=10, 
+        Clean_button = self.create_buttons(window, text="Clean", height=4, fg=self.button_create_fg_color, row=9, column=0, columnspan=10, 
                                            command=self.__clean_labels)
         
         self.__on_buttons(self.__change_button, self.bg_color, self.button_create_fg_color)
         self.__on_buttons(Ok_button,self.bg_color, self.button_create_fg_color)
         self.__on_buttons(Clean_button,self.bg_color, self.button_create_fg_color)
 
-        #window.protocol("WM_DELETE_WINDOW", lambda window, root: self.__on_closing_TopLevel(window, root))
-        #window.protocol
         window.wm_protocol("WM_DELETE_WINDOW", lambda root=root, window=window: self.__on_closing_TopLevel(root, window))
         
     def __on_closing_TopLevel(self, root: tk.Tk, window: tk.Toplevel) -> None:
@@ -793,8 +791,9 @@ class Window_Delete_Encripted_Data(create_root):
         }
         # message to confirm 
         self.__clean_labels()
-        root.destroy()
         self.__encript.ead.delete_data_from_encripted_file(file, key, data)
+        self.__encript.ead.clean_encripted_file(file, key)
+        root.destroy()
     
     def __on_buttons(self, button: tk.Button, primary_color: str, secundary_color: str = None) -> None:
         button.bind("<Enter>", lambda event: self.__on_mouse(button, primary_color, secundary_color))
