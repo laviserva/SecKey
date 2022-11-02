@@ -1,9 +1,13 @@
 import copy
+from queue import Empty
 import string
 import random
 import os
 
 from Crypto.Cipher import AES
+
+class FileEmpty(Exception):
+    pass
 
 class EaD:
     p_site = "//s"
@@ -111,13 +115,14 @@ class EaD:
         
         gets nonce tag and encript text then compare with the delete data you want.
         """
+        print(f"data: {data}")
         if not self.__verify_key(file, key):
             return -1
         
+        bool_data = {str(name):False for name in data.keys()}
+        data_values = list(data.values())
         data_keys = list(data.keys())
-        data_keys = [data[k] for k in data_keys]
         
-        out = []
         with open(file, "rb") as f:
             lines = f.read()
             words = lines.split(self.div_word)
@@ -128,11 +133,27 @@ class EaD:
                 tag = word[-32:-16]
                 nonce = word[-16:]
                 decript = self.__AES_decript(key, etxt, nonce, tag).decode()
-                _, decript = self.__delete_salt(decript)
-                if decript in data_keys:
-                    out.append(word)
-                    lines = lines.replace(word, b"")
-                    data_keys.remove(decript)
+                prefix, decript = self.__delete_salt(decript)
+                
+                if decript not in data_values:
+                    continue
+                index = data_values.index(decript)
+                
+                if prefix == self.__transform_dict_prefix(data_keys[index]) and bool_data["site"] == False:
+                    site = data_keys[index]
+                    bool_data[site] = True
+                    
+                    del(data_values[index])
+                    del(data_keys[index])
+                    continue
+                
+                if prefix != self.__transform_dict_prefix(data_keys[index]):
+                    continue
+                
+                del(data_values[index])
+                del(data_keys[index])
+
+                lines = lines.replace(word, b"")
                 if data_keys == []:
                     break
         if test:
@@ -141,7 +162,9 @@ class EaD:
             with open(file, "wb") as f:
                 f.write(lines) 
         #add self.__clean method for deleting useless things
-        return self.load_and_decript_file(file, key)
+        out = self.load_and_decript_file(file, key)
+        print(out)
+        return out
                 
     def __encript_data_low_memory(self, file:str, key:bytes, data:dict) -> None:
         with open(file, "wb") as f:
@@ -274,9 +297,13 @@ class EaD:
                 try:
                     decript = self.__AES_decript(key, etxt, nonce, tag).decode()
                 except:
-                    raise (Exception(ValueError("MAC check failed. The introduced key is incorrect")))
+                    raise FileEmpty("MAC check failed. The introduced key is incorrect")
                 out.append(decript)
-        return self.comprobe_duplicates(self.__remove_salt(out))
+        
+        if out == []:
+            raise Exception(f"file empty: {encripted_file}")
+        out = self.comprobe_duplicates(self.__remove_salt(out))
+        return out
             
     def load_data(self, filename: str) -> list[str]:
         sitio = ""
@@ -389,8 +416,13 @@ class EaD:
 
     def __salt_and_encript(self, string: str, key) -> tuple[bytes, bytes, bytes]:
         out = key.decode()[0] + string[0] + key.decode()[1] + string[1:-1] + key.decode()[-2] + string[-1] + key.decode()[-1]
-        print(out)
         return self.__AES_encript(out, key)
+    
+    def __transform_dict_prefix(self, string: str) -> str:
+        if string == "site": return self.p_site
+        if string == "user": return self.p_user
+        if string == "password": return self.p_password
+        if string == "token": return self.p_token
     
     def __verify_key(self, file: str, key: bytes):
         with open(file, "rb") as f:
