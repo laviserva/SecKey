@@ -600,7 +600,7 @@ class Window_Delete_Encripted_Data(create_root):
         self.show_password_image = os.path.join(self.resources_dir, "show_password.png")
         self.hide_password_image = os.path.join(self.resources_dir, "hide_password.png")
         self.file_path = file_path
-        self.__min_lenght = 7
+        self.__min_lenght = 0
         
         self.__encript = encript_data()
         self.entrys_color = "#2f2f2f"
@@ -784,16 +784,22 @@ class Window_Delete_Encripted_Data(create_root):
         else:
             messagebox.showinfo(message="Incorrect Password", title="Ok")
             return -1
+        index = None
+        for i in self.dicto[site]:
+            if user == self.dicto[site][i]["user"]:
+                index = i
+                break
         
         data = {
             "site": site,
-            "user": user,
+            ** self.dicto[site][index]
+            
         }
         # message to confirm 
-        self.__clean_labels()
+        #self.__clean_labels()
         self.__encript.ead.delete_data_from_encripted_file(file, key, data)
         self.__encript.ead.clean_encripted_file(file, key)
-        root.destroy()
+        #root.destroy()
     
     def __on_buttons(self, button: tk.Button, primary_color: str, secundary_color: str = None) -> None:
         button.bind("<Enter>", lambda event: self.__on_mouse(button, primary_color, secundary_color))

@@ -115,7 +115,6 @@ class EaD:
         
         gets nonce tag and encript text then compare with the delete data you want.
         """
-        print(f"data: {data}")
         if not self.__verify_key(file, key):
             return -1
         
@@ -163,7 +162,6 @@ class EaD:
                 f.write(lines) 
         #add self.__clean method for deleting useless things
         out = self.load_and_decript_file(file, key)
-        print(out)
         return out
                 
     def __encript_data_low_memory(self, file:str, key:bytes, data:dict) -> None:
