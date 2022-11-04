@@ -387,12 +387,8 @@ class Window_Add_to_Encripted_File(create_root):
     def create_main_window(self, window: tk.Frame, root: tk.Tk) -> None:
         self.__image = resize_image(self.show_password_image)
         
-        text = [f"{self.file_path}", "Site: ", "User: ", "Password: ", "Key: "]
-        rows = [0, 2, 3, 5, 7]
-        entrys_sensured = [5, 7]
-        combobox = rows[1]
-        self.file_path_text = rows[0]
-        colonspan = [2] + [1 for i in range(len(rows) -1)]
+        combobox = 2
+        self.file_path_text = 1
         options = list(self.dicto)
         option_menu_text = tk.StringVar()
         option_menu_text.set(options[-1])
@@ -401,12 +397,14 @@ class Window_Add_to_Encripted_File(create_root):
         self.entrys = dict()
         self.max_columnspan = 5
         
-        tk.Label(window, text="", bg=self.bg_color, width=2).grid(row = 0, column=9)
+        #tk.Label(window, text="", bg=self.bg_color, width=2).grid(row = 0, column=9)
+        tk.Label(window, text="     Add Account", bg=self.bg_color, fg = self.button_create_fg_color,
+                 font=("Times", 27)).grid(row = 0, column=0, columnspan=self.max_columnspan, pady=(15,0))
                 
         button = self.create_labels(window, text=f"File: {self.file_path}", font_size=13, no_grid = True)
-        button.grid(row = 0, column=0, columnspan = 3, pady=(40,20), padx=(40,0))
+        button.grid(row = 1, column=0, columnspan = 3, padx=(40,0), pady=(20,10))
         self.__change_button = self.create_buttons(window, text="Change", fg=self.button_create_fg_color, command=self.__open_encrypted_file, no_grid=True, font_size=13)
-        self.__change_button.grid(row=self.file_path_text, column=3, pady=(40,20))
+        self.__change_button.grid(row=self.file_path_text, column=3, pady=(20,10))
         
         btn = self.create_labels(window, text="Site: ", row=2, column=0, columnspan=1)
         combobox = self.create_combobox(window, options, row=2, column=1, columnspand=4)
@@ -421,7 +419,9 @@ class Window_Add_to_Encripted_File(create_root):
         btn = self.create_labels(window, text="Key: ", row=7, column=0, columnspan=1)
         self.__key_entry = self.create_entry(window, row=7, column=1, columnspand=4, sensure=True)
         key_show_hide_img = self.create_buttons_image(window, self.__image, row=7, column=5, command=lambda: self.__hide_show_password(self.__key_entry))
-        Ok_button = self.create_buttons(window, text="Ok", height=2, fg=self.button_create_fg_color, row=8, column=0, pady=(30,0),
+        
+        width = 35
+        Ok_button = self.create_buttons(window, text="Ok", height=2, width=width, fg=self.button_create_fg_color, row=8, column=0, pady=(30,0),
                                         sticky="nesw", columnspan = 10,
                                         command=lambda: self.__ok_button(
                                             self.file_path,
@@ -431,7 +431,7 @@ class Window_Add_to_Encripted_File(create_root):
                                             self.__key_entry[0], root
                                             )
                                         )
-        Clean_button = self.create_buttons(window, text="Clean", height=2, fg=self.button_create_fg_color, row=9, column=0, columnspan=10, 
+        Clean_button = self.create_buttons(window, text="Clean", height=2, width=width, fg=self.button_create_fg_color, row=9, column=0, columnspan=10, 
                                            command=self.__clean_labels)
         generate_password_button = self.create_buttons(window, text="Generate Password", height=2, fg=self.button_create_fg_color, row=10, column=0, columnspan=10, 
                                            command=self.__generate_password)
@@ -665,7 +665,8 @@ class Window_Delete_Encripted_Data(create_root):
         key_show_hide_img = self.create_buttons_image(window, self.__image, row=8, column=5, command=lambda: self.__hide_show_password(self.__key_entry))
         
         height = 4
-        Ok_button = self.create_buttons(window, text="Ok", height=height, width = 35,
+        width = 35
+        Ok_button = self.create_buttons(window, text="Ok", height=height, width = width,
                                         fg=self.button_create_fg_color, row=9, column=0, pady=(20,0),
                                         sticky="nesw", columnspan = 12,
                                         command=lambda: self.__ok_button(
@@ -675,7 +676,7 @@ class Window_Delete_Encripted_Data(create_root):
                                             self.__key_entry[0], root
                                             )
                                         )
-        Clean_button = self.create_buttons(window, text="Clean", height=height, width = 35,
+        Clean_button = self.create_buttons(window, text="Clean", height=height, width = width,
                                            fg=self.button_create_fg_color, row=10, column=0, columnspan=10, 
                                            command=self.__clean_labels)
         
