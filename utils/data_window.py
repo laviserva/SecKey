@@ -232,8 +232,8 @@ class create_menu(create_windows_abs):
         self.all_imgs_path = [
             os.path.join(self.resources_dir, "menu.png"),
             os.path.join(self.resources_dir, "add.png"),
-            os.path.join(self.resources_dir, "save.png"),
             os.path.join(self.resources_dir, "key.png"),
+            os.path.join(self.resources_dir, "delete.png"),
             os.path.join(self.resources_dir, "config.png")
         ]
         self.all_imgs = self.__load_images()
@@ -633,9 +633,7 @@ class Window_Delete_Encripted_Data(create_root):
     def create_main_window(self, window: tk.Frame, root: tk.Tk) -> None:
         self.__image = resize_image(self.show_password_image)
         
-        rows = [0, 2, 3, 5, 7]
-        combobox = rows[1]
-        self.file_path_text = rows[0]
+        self.file_path_text = 2
         
         options_menu = list(self.dicto)
         option_menu_text = tk.StringVar()
@@ -644,28 +642,32 @@ class Window_Delete_Encripted_Data(create_root):
         self.labels = dict()
         self.combobox = dict()
         self.entrys = dict()
-        self.max_columnspan = 5
+        self.max_columnspan = 12
         
-        tk.Label(window, text="", bg=self.bg_color, width=2).grid(row = 0, column=9)
+        tk.Label(window, text="Deleting File", bg=self.bg_color, fg = self.button_create_fg_color,
+                 font=("Times", 27)).grid(row = 0, column=0, columnspan=self.max_columnspan, pady=(20,0), padx=(0,0))
                 
         button = self.create_labels(window, text=f"File: {self.file_path}", font_size=13, no_grid = True)
-        button.grid(row = 0, column=0, columnspan = 3, pady=(40,20), padx=(40,0))
+        button.grid(row = 1, column=0, columnspan = 3, pady=(15,15), padx=(40,0))
         self.__change_button = self.create_buttons(window, text="Change", fg=self.button_create_fg_color, command=self.__open_encrypted_file, no_grid=True, font_size=13)
-        self.__change_button.grid(row=self.file_path_text, column=3, pady=(40,20))
+        self.__change_button.grid(row=1, column=3, pady=(15,15))
         
-        btn = self.create_labels(window, text="Site: ", row=2, column=0, columnspan=1)
-        site_combobox = self.create_combobox(window, options_menu, row=2, column=1, columnspand=4)
+        btn = self.create_labels(window, text="Site: ", row=3, column=0, columnspan=1)
+        site_combobox = self.create_combobox(window, options_menu, row=3, column=1, columnspand=4)
         
-        btn = self.create_labels(window, text="User: ", row=3, column=0, columnspan=1)
-        users_combobox = self.create_combobox(window, [], row=3, column=1, columnspand=4)
+        btn = self.create_labels(window, text="User: ", row=4, column=0, columnspan=1)
+        users_combobox = self.create_combobox(window, [], row=4, column=1, columnspand=4)
         
         site_combobox.bind('<<ComboboxSelected>>', lambda e, combobox=site_combobox: self.__combobox_handler(combobox, users_combobox))
 
-        btn = self.create_labels(window, text="Key: ", row=7, column=0, columnspan=1)
-        self.__key_entry = self.create_entry(window, row=7, column=1, columnspand=4, sensure=True)
-        key_show_hide_img = self.create_buttons_image(window, self.__image, row=7, column=5, command=lambda: self.__hide_show_password(self.__key_entry))
-        Ok_button = self.create_buttons(window, text="Ok", height=4, fg=self.button_create_fg_color, row=8, column=0, pady=(30,0),
-                                        sticky="nesw", columnspan = 10,
+        btn = self.create_labels(window, text="Key: ", row=8, column=0, columnspan=1)
+        self.__key_entry = self.create_entry(window, row=8, column=1, columnspand=4, sensure=True)
+        key_show_hide_img = self.create_buttons_image(window, self.__image, row=8, column=5, command=lambda: self.__hide_show_password(self.__key_entry))
+        
+        height = 4
+        Ok_button = self.create_buttons(window, text="Ok", height=height, width = 35,
+                                        fg=self.button_create_fg_color, row=9, column=0, pady=(20,0),
+                                        sticky="nesw", columnspan = 12,
                                         command=lambda: self.__ok_button(
                                             self.file_path,
                                             site_combobox,
@@ -673,7 +675,8 @@ class Window_Delete_Encripted_Data(create_root):
                                             self.__key_entry[0], root
                                             )
                                         )
-        Clean_button = self.create_buttons(window, text="Clean", height=4, fg=self.button_create_fg_color, row=9, column=0, columnspan=10, 
+        Clean_button = self.create_buttons(window, text="Clean", height=height, width = 35,
+                                           fg=self.button_create_fg_color, row=10, column=0, columnspan=10, 
                                            command=self.__clean_labels)
         
         self.__on_buttons(self.__change_button, self.bg_color, self.button_create_fg_color)
