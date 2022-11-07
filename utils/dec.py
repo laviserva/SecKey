@@ -209,6 +209,19 @@ class EaD:
         with open(file, "wb") as f:
             f.writelines(encripted_data)
         return self.load_and_decript_file(file, key)
+    
+    def encript_dict(self, dicto: dict, file: str, key: bytes) -> None:
+        if os.path.isfile(file) is False:
+            raise Exception(FileNotFoundError("File must exist"))
+        encripted_data = []
+        
+        print(dicto)
+        
+        for key in dicto:
+            print(key)
+                    
+        #with open(file, "wb") as f:
+        #    f.writelines(encripted_data)
 
     def encript_file(self, file: str, key:bytes) -> None:
         """encript_file encripts and organize a file.txt using AES algorithm.
