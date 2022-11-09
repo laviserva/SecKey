@@ -215,13 +215,22 @@ class EaD:
             raise Exception(FileNotFoundError("File must exist"))
         encripted_data = []
         
-        print(dicto)
-        
-        for key in dicto:
-            print(key)
+        for site in dicto:
+            salt_string = self.__salt_and_encript(self.p_site + site, key) + self.div_word
+            encripted_data.append(salt_string)
+            for num_user in dicto[site]:
+                for data in dicto[site][num_user]:
+                    if data == "user":
+                        salt_string = self.__salt_and_encript(self.p_user + dicto[site][num_user][data], key) + self.div_word
+                    elif data == "password":
+                        salt_string = self.__salt_and_encript(self.p_password + dicto[site][num_user][data], key) + self.div_word
+                    elif data == "token":
+                        salt_string = self.__salt_and_encript(self.p_token + dicto[site][num_user][data], key) + self.div_word
+                    encripted_data.append(salt_string)
+                    print(f"{data} - {salt_string}")
                     
-        #with open(file, "wb") as f:
-        #    f.writelines(encripted_data)
+        with open(file, "wb") as f:
+            f.writelines(encripted_data)
 
     def encript_file(self, file: str, key:bytes) -> None:
         """encript_file encripts and organize a file.txt using AES algorithm.

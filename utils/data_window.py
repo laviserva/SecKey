@@ -790,9 +790,9 @@ class Window_Replace_Key(create_root):
             return -1
         data = self.__encript.ead.load_and_decript_file(file, old_key)
         self.__encript.ead.encript_dict(data, file, new_key)
-        
-
-        #self.__encript.ead.add_data_to_file(data=data, encripted_file=file, key=key)
+        print(data)
+        data = self.__encript.ead.load_and_decript_file(file, new_key)
+        print(data)
         self.__clean_labels()
         root.destroy()
         #run_gui_load_file_with_key(file_path, key)
