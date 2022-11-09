@@ -5,6 +5,7 @@ import os
 
 from dec import EaD # Encript and Decript
 from enum import Enum, auto
+from data_window import Window_Create_Encripted_file
 
 class start_app_state(Enum):
     ALIVE = auto()
@@ -41,7 +42,7 @@ class start_app(EaD):
     
     def __create_encrypted_file(self) -> None:
         """Create encrypted file and add data to it"""
-        # use data_window
+        waef = Window_Create_Encripted_file()
         pass
         
     def __on_closing(self) -> None:
@@ -85,9 +86,7 @@ class start_app(EaD):
                        width=self.width,
                        height=self.height,
                        bg = self.bg_color)
-        #frame.pack(fill = tk.X, padx=20, pady=20)
         frame.grid(row=0, column=0, sticky=NW)
-        #frame.config(bg = "#fcfcfc")
         Seckeys_label=tk.Label(self.win, text="SecKeys",
                        font=(self.font, self.font_size_h1),
                        fg = self.title_font_color,
