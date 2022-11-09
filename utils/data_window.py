@@ -594,6 +594,10 @@ class Window_Add_to_Encripted_File(create_root):
         if len(name) > len_file: name = "..." + name[-len_file+3:]
         self.labels[self.file_path_text].config(text= f"File: {name}")      
 
+class Window_Create_Encripted_file(create_root):
+    def __init__(self):
+        ...
+
 class Window_Replace_Key(create_root):
     HIDE = auto()
     SHOW = auto()
@@ -630,7 +634,6 @@ class Window_Replace_Key(create_root):
     def create_main_window(self, window: tk.Frame, root: tk.Tk) -> None:
         self.__image = resize_image(self.show_password_image)
         
-        combobox = 2
         self.file_path_text = 1
         options = list(self.dicto)
         option_menu_text = tk.StringVar()
@@ -658,13 +661,17 @@ class Window_Replace_Key(create_root):
         
         width = 35
         height = 4
+        
+        window.wm_protocol("WM_DELETE_WINDOW", lambda root=root, window=window: self.__on_closing_TopLevel(root, window))
+        
         Ok_button = self.create_buttons(window, text="Ok", height=height, width=width, fg=self.button_create_fg_color, row=4, column=0, pady=(30,0),
                                         sticky="nesw", columnspan = 10,
                                         command=lambda: self.__ok_button(
                                             self.file_path,
                                             self.__key_entry[0],
                                             self.__key_entry2[0],
-                                            root
+                                            root, 
+                                            window
                                             )
                                         )
         Clean_button = self.create_buttons(window, text="Clean", height=height, width=width, fg=self.button_create_fg_color, row=5, column=0, columnspan=10, 
@@ -673,10 +680,7 @@ class Window_Replace_Key(create_root):
         self.__on_buttons(self.__change_button, self.bg_color, self.button_create_fg_color)
         self.__on_buttons(Ok_button,self.bg_color, self.button_create_fg_color)
         self.__on_buttons(Clean_button,self.bg_color, self.button_create_fg_color)
-
-        #window.protocol("WM_DELETE_WINDOW", lambda window, root: self.__on_closing_TopLevel(window, root))
-        #window.protocol
-        window.wm_protocol("WM_DELETE_WINDOW", lambda root=root, window=window: self.__on_closing_TopLevel(root, window))
+        
         
     def __on_closing_TopLevel(self, root: tk.Tk, window: tk.Toplevel) -> None:
         root.deiconify()
@@ -692,12 +696,6 @@ class Window_Replace_Key(create_root):
         self.entrys.update({row: button})
         button.grid(row=row, column=column, columnspan=columnspand)
         return list([button, state])
-    
-    def create_combobox(self, window: tk.Toplevel, options: list, row: int, column: int, columnspand:int = 1, width:int =20) -> ttk.Combobox:
-        combobox = ttk.Combobox(window, values=options, width=width)
-        self.combobox.update({row: combobox})
-        combobox.grid(row = row, column=column, columnspan=columnspand)
-        return combobox
 
     def create_labels(self, window: tk.Frame, text: str, row:int=0, column:int=0, columnspan = 1,
                       rowspan = 1, justify=tk.RIGHT, anchor=tk.W, sticky=tk.E, font_size:int=12, no_grid=False) -> tk.Button:
@@ -747,12 +745,6 @@ class Window_Replace_Key(create_root):
         button.grid(row = row, column=column, sticky=sticky, pady=pady, columnspan=columnspan, padx=padx)
         return button
     
-    def __generate_password(self) -> None:
-        passw = self.__encript.ead.random_password()
-        show_pw = passw[3:]
-        self.__password_entry[0].delete(0, END)
-        self.__password_entry[0].insert(0, show_pw)
-    
     def __get_geometry(self, window) -> str:
         x_coordinates = window.winfo_screenwidth()//2 - self.width//2
         y_coordinates = window.winfo_screenheight()//2 - self.height//2
@@ -769,7 +761,7 @@ class Window_Replace_Key(create_root):
             entry[0].config(show = "*")
             entry[1] = self.HIDE
     
-    def __ok_button(self, file: str, old_key: tk.Entry, new_key: tk.Entry, root: tk.Tk) -> None:
+    def __ok_button(self, file: str, old_key: tk.Entry, new_key: tk.Entry, root: tk.Tk, window: tk.Toplevel) -> None:
         old_key = old_key.get()
         old_key = old_key.encode()
         
@@ -790,12 +782,9 @@ class Window_Replace_Key(create_root):
             return -1
         data = self.__encript.ead.load_and_decript_file(file, old_key)
         self.__encript.ead.encript_dict(data, file, new_key)
-        print(data)
         data = self.__encript.ead.load_and_decript_file(file, new_key)
-        print(data)
         self.__clean_labels()
-        root.destroy()
-        #run_gui_load_file_with_key(file_path, key)
+        self.__on_closing_TopLevel(root, window)
     
     def __on_buttons(self, button: tk.Button, primary_color: str, secundary_color: str = None) -> None:
         button.bind("<Enter>", lambda event: self.__on_mouse(button, primary_color, secundary_color))
@@ -806,7 +795,6 @@ class Window_Replace_Key(create_root):
     
     def __open_encrypted_file(self) -> None:
         text_file_extensions = ['*.bin']
-        self.__file = None
         ftypes = [
             ('.Bin (Encripted)', text_file_extensions)]
         filename = filedialog.askopenfilename(initialdir=os.getcwd(), title="Select file",
@@ -814,7 +802,6 @@ class Window_Replace_Key(create_root):
         if not filename:
             return
 
-        self.__file = filename
         name = os.path.basename(filename)
         len_file = 20
         if len(name) > len_file: name = "..." + name[-len_file+3:]
