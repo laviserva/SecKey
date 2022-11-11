@@ -28,7 +28,6 @@ class start_app(EaD):
     def __init__(self) -> None:
         self.state = start_app_state.ALIVE
         
-        
         self.place_starting = 0.2
         self.place_step = 0.1
         self.place_in_center = 0.5
@@ -40,9 +39,11 @@ class start_app(EaD):
         self.show = "*"
         self.__file = None
     
-    def __create_encrypted_file(self) -> None:
+    def __create_encrypted_file(self, window: tk.Frame, root: tk.Tk) -> None:
         """Create encrypted file and add data to it"""
         waef = Window_Create_Encripted_file()
+        waef.add_data_to_file(window, root)
+        print("hihahaha")
         pass
         
     def __on_closing(self) -> None:
@@ -105,7 +106,7 @@ class start_app(EaD):
                                         activebackground = self.button_create_fg_color,
                                         activeforeground = self.bg_color,
                                         border = 0,
-                                        command = self.__create_encrypted_file
+                                        command = lambda window=frame, root=self.win: self.__create_encrypted_file(window, root)
                                         )
         create_file_button.bind("<Enter>", lambda event: self.__on_enter_mouse(create_file_button,self.button_create_fg_color, self.bg_color))
         create_file_button.bind("<Leave>", lambda event: self.__on_leave_mouse(create_file_button,self.button_create_fg_color, self.bg_color))
