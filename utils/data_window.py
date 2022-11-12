@@ -547,13 +547,13 @@ class Window_Add_to_Encripted_File(create_root):
         
         if (file and site and user and password and key) == "":
             messagebox.showinfo(message="All fields must be completed", title="Warning")
-            return 0
+            return -1
         if len(user) < self.__min_lenght or len(password) < self.__min_lenght or len(key) < self.__min_lenght:
             messagebox.showinfo(message=f"All fields must have at least {self.__min_lenght} characters", title="Warning")
-            return 0
+            return -1
         if  self.__min_lenght < len(password) > 17:
             messagebox.showinfo(message="Password field lenght has been exceded.\nMax 16 characters", title="Warning")
-            return 0
+            return -1
         
         if self.__encript.Verify(file, key):
             messagebox.showinfo(message="Saved", title="Ok")
@@ -621,8 +621,6 @@ class Window_Create_Encripted_file(create_root):
             text = tk.StringVar()
             text.set("")
             self.entrys[key]["textvariable"] = text
-        for key in self.combobox:
-            self.combobox[key]["textvariable"] = text
         
     def create_main_window(self, window: tk.Frame, root: tk.Tk) -> None:
         self.__image = resize_image(self.show_password_image)
@@ -632,36 +630,37 @@ class Window_Create_Encripted_file(create_root):
         self.entrys = dict()
         self.max_columnspan = 5
         
-        tk.Label(window, text="Create Encripted File", bg=self.bg_color, fg = self.button_create_fg_color,
-                 font=("Times", 27)).grid(row = 0, column=0, columnspan=self.max_columnspan, pady=(15,0))
+        tk.Label(window, text="Create File", bg=self.bg_color, fg = self.button_create_fg_color,
+                 font=("Times", 27)).grid(row = 0, column=0, columnspan=self.max_columnspan, pady=(15,20))
                 
-        button = self.create_labels(window, text=f"File: ", font_size=13, no_grid = True)
-        button.grid(row = 1, column=0, columnspan = 3, padx=(40,0), pady=(20,10))
-        entry,_ = self.create_entry(window, row=1, column=1, columnspand=4)
+        file_button = self.create_labels(window, text=f"File: ", font_size=13, no_grid = True)
+        file_button.grid(row = 1, column=0, columnspan = 3)
+        file_entry,_ = self.create_entry(window, row=1, column=1, columnspand=4)
         #without extension
         
-        btn = self.create_labels(window, text="Site: ", row=2, column=0, columnspan=1)
-        entry,_ = self.create_entry(window, row=2, column=1, columnspand=4)
+        site_btn = self.create_labels(window, text="Site: ", row=2, column=0, columnspan=1)
+        site_entry,_ = self.create_entry(window, row=2, column=1, columnspand=4)
 
-        btn = self.create_labels(window, text="User: ", row=3, column=0, columnspan=1)
-        entry,_ = self.create_entry(window, row=3, column=1, columnspand=4)
+        usr_btn = self.create_labels(window, text="User: ", row=3, column=0, columnspan=1)
+        usr_entry,_ = self.create_entry(window, row=3, column=1, columnspand=4)
         
-        btn = self.create_labels(window, text= "Password: ", row=4, column=0, columnspan=1)
+        psw_btn = self.create_labels(window, text= "Password: ", row=4, column=0, columnspan=1)
         self.__password_entry = self.create_entry(window, row=4, column=1, columnspand=4, sensure=True)
         password_show_hide_img = self.create_buttons_image(window, self.__image, row=4, column=5, command=lambda: self.__hide_show_password(self.__password_entry))
 
         btn = self.create_labels(window, text="Key: ", row=5, column=0, columnspan=1)
-        self.__key_entry = self.create_entry(window, row=5, column=1, columnspand=4, sensure=True)
-        key_show_hide_img = self.create_buttons_image(window, self.__image, row=5, column=5, command=lambda: self.__hide_show_password(self.__key_entry))
+        key_entry = self.create_entry(window, row=5, column=1, columnspand=4, sensure=True)
+        key_show_hide_img = self.create_buttons_image(window, self.__image, row=5, column=5, command=lambda: self.__hide_show_password(key_entry))
         
         width = 35
         Ok_button = self.create_buttons(window, text="Ok", height=2, width=width, fg=self.button_create_fg_color, row=6, column=0, pady=(30,0),
                                         sticky="nesw", columnspan = 10,
                                         command=lambda: self.__ok_button(
-                                            self.file_path,
-                                            entry,
+                                            file_entry,
+                                            site_entry,
+                                            usr_entry,
                                             self.__password_entry[0],
-                                            self.__key_entry[0], root
+                                            key_entry[0], window, root
                                             )
                                         )
         Clean_button = self.create_buttons(window, text="Clean", height=2, width=width, fg=self.button_create_fg_color, row=7, column=0, columnspan=10, 
@@ -678,7 +677,7 @@ class Window_Create_Encripted_file(create_root):
         root.deiconify()
         window.destroy()
     
-    def create_entry(self, window: tk.Toplevel, row: int, column: int, columnspand = 1, width=20, sensure=None) -> list:
+    def create_entry(self, window: tk.Toplevel, row: int, column: int, columnspand = 1, width=25, sensure=None) -> list:
         button = tk.Entry(window, width=width + 3, bg=self.entrys_color, fg = self.button_create_fg_color)
         if sensure:
             button.config(show="*")
@@ -711,7 +710,7 @@ class Window_Create_Encripted_file(create_root):
                                     border = self.border,
                                     bg = self.bg_color,
                                     activebackground= self.bg_color)
-        button.grid(row=row, column=column, sticky=sticky)
+        button.grid(row=row, column=column, sticky=sticky, padx=(4,0))
         if command: button.config(command=command)
         state = self.HIDE
         return list([button, state])
@@ -759,8 +758,38 @@ class Window_Create_Encripted_file(create_root):
             entry[0].config(show = "*")
             entry[1] = self.HIDE
     
-    def __ok_button(self, file: str, user: tk.Entry, password: tk.Entry, key: tk.Entry, root: tk.Tk) -> None:
-        ...
+    def __ok_button(self, file: tk.Entry, site: tk.Entry, user: tk.Entry, password: tk.Entry, key: tk.Entry, window: tk.Toplevel, root: tk.Tk) -> None:
+        file = file.get()
+        site = site.get()
+        user = user.get()
+        password = password.get()
+        key = key.get().encode()
+        
+        if (file and site and user and password and key) == "":
+            messagebox.showinfo(message="All fields must be completed", title="Warning")
+            return 0
+        if len(user) < self.__min_lenght or len(password) < self.__min_lenght or len(key) < self.__min_lenght:
+            messagebox.showinfo(message=f"All fields must have at least {self.__min_lenght} characters", title="Warning")
+            return -1
+        if  self.__min_lenght < len(password) > 17:
+            messagebox.showinfo(message="Password field lenght has been exceded.\nMax 16 characters", title="Warning")
+            return -1
+        
+        file = file.split(".")[0] + ".bin"
+        
+        data = [
+            self.__encript.ead.p_site + site,
+            self.__encript.ead.p_user + user,
+            self.__encript.ead.p_password + password,
+        ]
+        
+        if os.path.exists(file):
+            messagebox.showinfo(message=f"Invalid name", title="File exist")
+            return -1
+        out = self.__encript.ead.encript_array(file, data, key)
+        messagebox.showinfo(message=f"File created", title="Success!")
+        self.__clean_labels()
+        self.__on_closing_TopLevel(root, window)
     
     def __on_buttons(self, button: tk.Button, primary_color: str, secundary_color: str = None) -> None:
         button.bind("<Enter>", lambda event: self.__on_mouse(button, primary_color, secundary_color))
