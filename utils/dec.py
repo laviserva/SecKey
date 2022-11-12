@@ -163,7 +163,15 @@ class EaD:
         #add self.__clean method for deleting useless things
         out = self.load_and_decript_file(file, key)
         return out
-                
+    
+    def encript_array(self, file: str, data: list[str], key: bytes):
+        data = [self.__salt_and_encript(d, key) + self.div_word
+                for d in data]
+        
+        with open(file, "wb") as f:
+            f.writelines(data)
+        return self.load_and_decript_file(file, key)
+    
     def __encript_data_low_memory(self, file:str, key:bytes, data:dict) -> None:
         with open(file, "wb") as f:
             for site in data:
@@ -179,6 +187,7 @@ class EaD:
                         token = data[site][num_user]["token"]
                         f.write(self.__salt_and_encript(self.p_token + token, key) + self.div_word)
         print("The file is very big. None is returned")
+
 
     def encript_data(self, file:str, key:bytes, data:dict) -> None:
         """Encript all data in a dict in a file.bin using a key"""
