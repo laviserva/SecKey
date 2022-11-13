@@ -10,7 +10,7 @@ def main():
     file = gui.init_window()
     if gui.state == start_app_state.CLOSED:
         sys.exit()
-    if gui.state == start_app_state.DESTROYED:
+    if gui.state == start_app_state.DESTROYED or gui.state == start_app_state.LOADING_FILE:
         data = vad.Validation(file)
     if gui.state == start_app_state.FILE_CREATED:
         data = gui.data

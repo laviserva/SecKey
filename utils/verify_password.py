@@ -42,6 +42,8 @@ class verify_password(EaD):
         self.__image = None
         self.__entry_value = None
         self.file = None
+        
+        self.state = Verify_password_state.ALIVE
     
     def __on_closing(self) -> None:
         if tk.messagebox.askokcancel("Quit", "Do you want to quit?"):
