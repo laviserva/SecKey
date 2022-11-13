@@ -11,6 +11,7 @@ class start_app_state(Enum):
     ALIVE = auto()
     CLOSED = auto()
     DESTROYED = auto()
+    FILE_CREATED = auto()
     LOADING_FILE = auto()
 
 class start_app(EaD):
@@ -42,9 +43,12 @@ class start_app(EaD):
     def __create_encrypted_file(self, window: tk.Frame, root: tk.Tk) -> None:
         """Create encrypted file and add data to it"""
         waef = Window_Create_Encripted_file()
-        waef.add_data_to_file(window, root)
-        print("hihahaha")
-        pass
+        encripted_window = waef.add_data_to_file(window, root)
+        window.wait_window(encripted_window)
+        self.__file = waef.file
+        self.win.destroy()
+        self.state = start_app_state.FILE_CREATED
+        self.data = waef.get_data()
         
     def __on_closing(self) -> None:
         if tk.messagebox.askokcancel("Quit", "Do you want to quit?"):

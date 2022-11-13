@@ -605,6 +605,9 @@ class Window_Create_Encripted_file(create_root):
         self.__min_lenght = 7
         self.entrys_color = "#2f2f2f"
         self.__encript = encript_data()
+        
+        self.file = None
+        self.__key = False
 
     def add_data_to_file(self, window: tk.Frame, root: tk.Tk) -> None:
         window_add_data = tk.Toplevel(window, bg = self.bg_color)
@@ -614,7 +617,8 @@ class Window_Create_Encripted_file(create_root):
         window_add_data.title("Create Encripted File")
         window_add_data.iconphoto(False, tk.PhotoImage(file=os.path.join(self.resources_dir,"sk.png")))
         window_add_data.geometry(self.__get_geometry(window_add_data))
-        return self.create_main_window(window_add_data, root)
+        self.create_main_window(window_add_data, root)
+        return window_add_data
 
     def __clean_labels(self) -> None:
         for key in self.entrys:
@@ -741,6 +745,12 @@ class Window_Create_Encripted_file(create_root):
         show_pw = passw[3:]
         self.__password_entry[0].delete(0, END)
         self.__password_entry[0].insert(0, show_pw)
+        
+    def get_data(self) -> None:
+        if not self.__key:
+            print("use method 'add_data_to_file' first")
+            return -1
+        return self.__data
     
     def __get_geometry(self, window) -> str:
         x_coordinates = window.winfo_screenwidth()//2 - self.width//2
@@ -776,6 +786,7 @@ class Window_Create_Encripted_file(create_root):
             return -1
         
         file = file.split(".")[0] + ".bin"
+        self.file = file
         
         data = [
             self.__encript.ead.p_site + site,
@@ -787,6 +798,8 @@ class Window_Create_Encripted_file(create_root):
             messagebox.showinfo(message=f"Invalid name", title="File exist")
             return -1
         out = self.__encript.ead.encript_array(file, data, key)
+        self.__data = self.__encript.ead.load_and_decript_file(file, key)
+        self.__key = True
         messagebox.showinfo(message=f"File created", title="Success!")
         self.__clean_labels()
         self.__on_closing_TopLevel(root, window)
