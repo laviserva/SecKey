@@ -15,7 +15,7 @@ class EaD:
     p_user = "//u"
     p_password = "//p"
     p_token = "//t"
-    div_word = b"xaelko"
+    div_word = b"xaelko" #b"\xgg"
     __max_capability = 50
     def __init__(self) -> None:
         self.__characters = "~@#_^*%.+:;=" + string.ascii_letters + string.digits
