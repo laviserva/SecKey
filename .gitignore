@@ -1,5 +1,4 @@
 *.txt
 *.bin
 __pycache__
-*.png
-pd
+ext
