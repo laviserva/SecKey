@@ -13,13 +13,12 @@ key = b'Sixteen byte key'
 
 # Files from we import the data
 file = r"file.txt" # must be organized -> //u, //s, //p, //d
+ch = EaD()
+ch.encript_file(file, key) # -> Encript file «file_encripted.bin»
 """
-Warning - avoid using .txt files
+Warning - avoid use .txt files
 """
 file_encripted = file[:-4] + r"_encripted.bin" # Where the encripted data will be
-
-ch = EaD()
-ch.encript_file(file, key)
 
 # Loading normal file organized -> //u, //s, //p, //d
 file_text = ch.load_data(file)

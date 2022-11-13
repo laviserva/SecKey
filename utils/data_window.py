@@ -1287,12 +1287,3 @@ def run_gui_load_file_with_key(file_path: str, dicto: dict) -> None:
     menu.default_gui(root_window)
 
     root.loop()
-    
-if __name__ == "__main__":
-    ead = EaD()
-    
-    key = b"1234567890123456"
-    file = "file_encripted.bin"
-    
-    data = ead.load_and_decript_file(file, key)
-    run_gui_load_file_with_key(file, data)
