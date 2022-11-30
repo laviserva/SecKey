@@ -12,9 +12,9 @@ from utils.dec import EaD
 key = b'Sixteen byte key'
 
 # Files from we import the data
-file = r"file.txt" # must be organized -> //u, //s, //p, //d
+file = r"file.txt" # must be organized -> //uuser, //ssite, //ppassword
 ch = EaD()
-ch.encript_file(file, key) # -> Encript file «file_encripted.bin»
+ch.encript_file(file, key) # -> Encript file into -> «file_encripted.bin»
 """
 Warning - avoid use .txt files
 """
@@ -22,7 +22,6 @@ file_encripted = file[:-4] + r"_encripted.bin" # Where the encripted data will b
 
 # Loading normal file organized -> //u, //s, //p, //d
 file_text = ch.load_data(file)
- 
 """
 # Encript and add this information to the file encripted.
 # If the file doesn't have .bin extension, will arise an exception
