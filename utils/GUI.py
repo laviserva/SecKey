@@ -20,5 +20,3 @@ def main():
         main()
     if vad.state == Verify_password_state.DESTROYED and data is not None:
         run_gui_load_file_with_key(file, data)
-
-main()
