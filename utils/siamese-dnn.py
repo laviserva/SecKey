@@ -12,17 +12,22 @@ class Net(nn.Module):
 		self.fc2 = nn.Linear(120, 84)
 		self.fc3 = nn.Linear(84,10)
 
-	def forward(self, x):
+	def forward(self, img_input, db_value: float):
 		# Max pooling over a (2,2) window
-		x = F.max_pool2d(F.relu(self.conv1(x)), (2,2) )
+		img_input = F.max_pool2d(F.relu(self.conv1(img_input)), (2,2) )
 		# If the size is square, you can specify with a single number
-		x = F.max_pool2d(F.relu(self.conv2(x), 2)
-		x = torch.flatten(x, 1) # flatten all dimension exceptt the batch dimension
+		img_input = F.max_pool2d(F.relu(self.conv2(img_input), 2)
+		img_input = torch.flatten(img_input, 1) # flatten all dimension exceptt the batch dimension
 
-		x = F.relu(self.fc1(x))
-		x = F.relu(self.fc2(x))
-		x = self.fc3(x)
-		return x
+		img_input = F.relu(self.fc1(img_input))
+		img_input = F.relu(self.fc2(img_input))
+		img_input = self.fc3(img_input)
+
+        error = img_input - db_value
+		return error
 
 net = Net()
 print(net)
+
+input_1 = torch.randn(1,1,32,32)
+out = net(input)
