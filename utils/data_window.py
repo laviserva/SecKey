@@ -7,8 +7,8 @@ from enum import Enum, auto
 from typing import Callable
 from abc import abstractmethod
 
-from img_utils import resize_image, change_img_colors
-from dec import EaD # Encript and Decript
+from utils.img_utils import resize_image, change_img_colors
+from utils.dec import EaD # Encript and Decript
 
 class create_windows_abs_state(Enum):
     CLOSE = auto

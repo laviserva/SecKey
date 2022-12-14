@@ -3,9 +3,9 @@ from tkinter import NW, filedialog, CENTER, W
 
 import os
 
-from dec import EaD # Encript and Decript
+from utils.dec import EaD # Encript and Decript
+from utils.data_window import Window_Create_Encripted_file
 from enum import Enum, auto
-from data_window import Window_Create_Encripted_file
 
 class start_app_state(Enum):
     ALIVE = auto()

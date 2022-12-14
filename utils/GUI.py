@@ -1,6 +1,6 @@
-from verify_password import verify_password, Verify_password_state # Verify and decript
-from start_app import start_app, start_app_state # Create or load
-from data_window import run_gui_load_file_with_key
+from utils.verify_password import verify_password, Verify_password_state # Verify and decript
+from utils.start_app import start_app, start_app_state # Create or load
+from utils.data_window import run_gui_load_file_with_key
 import sys
 
 def main():
@@ -20,3 +20,6 @@ def main():
         main()
     if vad.state == Verify_password_state.DESTROYED and data is not None:
         run_gui_load_file_with_key(file, data)
+
+if __name__ == "__main__":
+    main()

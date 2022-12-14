@@ -1,8 +1,8 @@
 # Verify and decript
 import tkinter as tk
 from tkinter import ttk, W, CENTER, StringVar
-from dec import EaD # Encript and Decript
-from img_utils import resize_image
+from utils.dec import EaD # Encript and Decript
+from utils.img_utils import resize_image
 
 from enum import Enum, auto
 
